@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · AI学术评审与治理平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="argp-theme.css">
+</head>
+<body class="login-page">
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-logo">ARGP</div>
+      <h1 class="login-title">AI学术评审与治理平台</h1>
+      <p class="login-desc">Demo 演示登录 · 选择角色进入对应工作台</p>
+    </div>
+
+    <div class="login-card-hd">账号登录</div>
+
+    <div class="login-field">
+      <label class="login-label">账号</label>
+      <input class="login-input" id="login-account" value="demo" readonly>
+    </div>
+
+    <div class="login-field">
+      <label class="login-label">选择角色 <span class="login-req">*</span></label>
+      <div class="role-grid" id="role-grid">
+        <button type="button" class="role-card active" data-role="student">
+          <div class="role-ic role-ic-student">学</div>
+          <div class="role-name">学生</div>
+          <div class="role-hint">申报项目 · AI助手 · 进度跟踪</div>
+        </button>
+        <button type="button" class="role-card" data-role="teacher">
+          <div class="role-ic role-ic-teacher">师</div>
+          <div class="role-name">教师</div>
+          <div class="role-hint">指导审阅 · 专家评审 · 答辩投票</div>
+        </button>
+        <button type="button" class="role-card" data-role="secretary">
+          <div class="role-ic role-ic-secretary">秘</div>
+          <div class="role-name">秘书处</div>
+          <div class="role-hint">受理评审 · 进度监控 · 流程催办</div>
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="login-btn" id="login-submit">进入系统</button>
+    <p class="login-foot">演示环境无需密码 · 教师可在右上角切换导师/专家/组长身份</p>
+  </div><!-- /login-card -->
+</div>
+
+<script src="argp-auth.js"></script>
+<script>
+(function () {
+  var selectedRole = 'student';
+  var grid = document.getElementById('role-grid');
+  var submit = document.getElementById('login-submit');
+
+  grid.querySelectorAll('.role-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      grid.querySelectorAll('.role-card').forEach(function (c) { c.classList.remove('active'); });
+      card.classList.add('active');
+      selectedRole = card.getAttribute('data-role');
+    });
+  });
+
+  submit.addEventListener('click', function () {
+    if (window.ARGP_AUTH) window.ARGP_AUTH.login(selectedRole);
+  });
+
+  var u = window.ARGP_AUTH && window.ARGP_AUTH.getUser();
+  if (u && u.role) {
+    var role = window.ARGP_AUTH.ROLES[u.role];
+    if (role) window.location.replace(role.home);
+  }
+})();
+</script>
+</body>
+</html>

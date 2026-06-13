@@ -1,0 +1,3474 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI学术评审与治理平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:       #1a56db;
+  --primary-dark:  #1340b8;
+  --primary-light: #e8f0fe;
+  --primary-mid:   #3b7dd8;
+  --blue-50:  #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  --ink:      #0f1f3d;
+  --ink-2:    #1e3a5f;
+  --ink-3:    #2d5282;
+  --text:     #374151;
+  --text-2:   #6b7280;
+  --text-3:   #9ca3af;
+  --white:    #ffffff;
+  --bg:       #f4f7fc;
+  --bg-2:     #eef2f9;
+  --border:   #d1dce8;
+  --border-2: #e5ecf4;
+  --success:  #0e7f4f;
+  --success-bg: #d1fae5;
+  --warn:     #b45309;
+  --warn-bg:  #fef3c7;
+  --danger:   #b91c1c;
+  --danger-bg:#fee2e2;
+  --sidebar-w: 220px;
+  --topbar-h:  54px;
+  --shadow-sm: 0 1px 3px rgba(15,31,61,0.08);
+  --shadow:    0 2px 8px rgba(15,31,61,0.10);
+  --shadow-lg: 0 4px 20px rgba(15,31,61,0.13);
+  --radius:    6px;
+  --radius-lg: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.5;
+  display: flex;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--blue-900);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 200;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 22px 18px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.09);
+}
+
+.brand-name {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.brand-tag {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--blue-200);
+  background: rgba(255,255,255,0.08);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.nav-group {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.nav-label {
+  padding: 6px 18px 4px;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.32);
+  font-weight: 500;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 18px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.68);
+  cursor: pointer;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.nav-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.nav-item.active { color: #fff; background: rgba(255,255,255,0.10); border-left-color: var(--blue-200); }
+
+.nav-icon {
+  width: 15px; height: 15px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-icon, .nav-item:hover .nav-icon { opacity: 1; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.user-av {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--primary-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: #fff;
+  flex-shrink: 0;
+}
+.user-name { font-size: 12.5px; color: #fff; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--blue-200); font-family: 'DM Mono', monospace; }
+
+/* ─── MAIN ─── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.topbar-sep { color: var(--border); font-size: 16px; }
+.topbar-sub { font-size: 13px; color: var(--text-2); }
+.topbar-space { flex: 1; }
+
+.topbar-search {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 11px;
+  font-size: 13px;
+  color: var(--text);
+  width: 196px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.topbar-search:focus { border-color: var(--primary); }
+
+.topbar-icon-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius);
+  background: none;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-2);
+  transition: all 0.15s;
+}
+.topbar-icon-btn:hover { background: var(--bg); color: var(--ink); border-color: var(--primary); }
+
+/* ─── CONTENT ─── */
+.content { padding: 24px 28px; flex: 1; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── TYPOGRAPHY ─── */
+.page-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.page-sub { font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
+
+.section-hd {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.section-action { font-size: 12.5px; color: var(--primary); cursor: pointer; }
+.section-action:hover { text-decoration: underline; }
+
+/* ─── STAT CARDS ─── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.stat-card.c-blue::after  { background: var(--primary); }
+.stat-card.c-teal::after  { background: #0891b2; }
+.stat-card.c-green::after { background: #059669; }
+.stat-card.c-indigo::after{ background: #4f46e5; }
+.stat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+}
+.stat-lbl { font-size: 12.5px; color: var(--text-2); margin-top: 5px; }
+.stat-hint { font-size: 11px; color: var(--text-3); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+/* ─── PANELS ─── */
+.panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.panel-hd {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+}
+.panel-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.panel-count {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 10.5px;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.panel-ml { margin-left: auto; }
+
+/* ─── TODO ITEMS ─── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border-2);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.todo-item:last-child { border-bottom: none; }
+.todo-item:hover { background: var(--blue-50); }
+
+.todo-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.todo-body { flex: 1; min-width: 0; }
+.todo-title { font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.todo-meta  { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.todo-cta {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.13s;
+  white-space: nowrap;
+}
+.todo-cta:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ─── BADGES ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.b-draft     { background: #f3f4f6; color: #4b5563; }
+.b-guidance  { background: #fef3c7; color: #92400e; }
+.b-submitted { background: var(--blue-100); color: var(--blue-800); }
+.b-accepted  { background: #ede9fe; color: #5b21b6; }
+.b-review    { background: #dbeafe; color: #1e40af; }
+.b-defense   { background: #fce7f3; color: #9d174d; }
+.b-pub       { background: var(--success-bg); color: var(--success); }
+.b-archived  { background: #f3f4f6; color: #6b7280; }
+.b-green     { background: var(--success-bg); color: var(--success); }
+.b-yellow    { background: var(--warn-bg); color: var(--warn); }
+.b-red       { background: var(--danger-bg); color: var(--danger); }
+
+/* ─── TABLE ─── */
+.data-table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--blue-50); }
+.td-name { font-weight: 500; color: var(--ink); cursor: pointer; }
+.td-name:hover { color: var(--primary); text-decoration: underline; }
+.td-id { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
+
+/* ─── TABS ─── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  background: var(--white);
+}
+.tab-item {
+  padding: 9px 18px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-weight: 500;
+  transition: color 0.13s, border-color 0.13s;
+}
+.tab-item:hover { color: var(--ink); }
+.tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* ─── BREADCRUMB ─── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+.bc-link { color: var(--primary); cursor: pointer; }
+.bc-link:hover { text-decoration: underline; }
+.bc-sep { color: var(--border); }
+
+/* ─── FORMS ─── */
+.form-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.form-section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 16px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--border-2);
+}
+.form-grid { display: grid; gap: 14px; margin-bottom: 14px; }
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-grid-1 { grid-template-columns: 1fr; }
+.form-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-bottom: 5px;
+  letter-spacing: 0.02em;
+}
+.req { color: #dc2626; margin-left: 2px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 11px;
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--white);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.08);
+}
+.form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.13s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-primary  { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-secondary{ background: var(--white); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--bg); border-color: var(--primary); color: var(--primary); }
+.btn-success  { background: #059669; color: #fff; border-color: #059669; }
+.btn-success:hover { background: #047857; }
+.btn-ghost    { background: none; color: var(--text-2); border-color: transparent; }
+.btn-ghost:hover { color: var(--ink); background: var(--bg); }
+.btn-sm { padding: 3px 9px; font-size: 11.5px; }
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-2);
+  margin-top: 16px;
+}
+
+/* ─── DETAIL LAYOUT ─── */
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 18px;
+}
+.meta-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.meta-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 12.5px;
+}
+.meta-row:last-child { border-bottom: none; }
+.meta-k { color: var(--text-2); }
+.meta-v { color: var(--ink); font-weight: 500; }
+
+/* ─── TIMELINE ─── */
+.timeline { position: relative; padding-left: 22px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px; top: 8px; bottom: 0;
+  width: 1.5px;
+  background: var(--border);
+}
+.tl-item { position: relative; padding-bottom: 18px; padding-left: 14px; font-size: 12.5px; }
+.tl-dot {
+  position: absolute;
+  left: -16px; top: 3px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+}
+.tl-done   { background: #059669; }
+.tl-active { background: var(--primary); }
+.tl-pending{ background: var(--border); }
+.tl-title { font-weight: 600; color: var(--ink); }
+.tl-time  { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.tl-desc  { font-size: 11.5px; color: var(--text-2); margin-top: 3px; line-height: 1.5; }
+
+/* ─── STEP FLOW ─── */
+.step-flow {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  gap: 0;
+}
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 76px;
+}
+.step-circle {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 600;
+  border: 2px solid var(--border);
+}
+.step-circle.s-done   { background: #059669; border-color: #059669; color: #fff; }
+.step-circle.s-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.step-circle.s-pending{ background: var(--white); color: var(--text-3); }
+.step-lbl { font-size: 11px; color: var(--text-2); text-align: center; }
+.step-lbl.s-active { color: var(--primary); font-weight: 600; }
+.step-arrow { font-size: 13px; color: var(--border); margin: 0 6px; margin-bottom: 18px; flex-shrink: 0; }
+.step-item.step-clickable { cursor: pointer; user-select: none; }
+.step-item.step-clickable:hover .step-circle.s-pending { border-color: var(--primary); color: var(--primary); }
+.step-item.step-clickable:hover .step-lbl { color: var(--primary); }
+.apply-step-section { scroll-margin-top: 80px; transition: box-shadow .3s; }
+#apply-step-ai { margin-bottom: 14px; }
+.apply-step-section.apply-step-flash {
+  box-shadow: 0 0 0 2px var(--action-blue, #1677ff);
+  border-radius: var(--radius-lg);
+}
+
+/* ─── UPLOAD ─── */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.upload-zone:hover { border-color: var(--primary); background: var(--blue-50); }
+.upload-title { font-size: 13px; color: var(--text-2); }
+.upload-hint  { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+.file-name { flex: 1; color: var(--ink); }
+.file-size { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); }
+.file-del  { color: var(--text-3); cursor: pointer; font-size: 13px; }
+.file-del:hover { color: var(--danger); }
+
+/* ─── AI BLOCK ─── */
+.ai-block {
+  background: var(--blue-900);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  color: rgba(255,255,255,0.88);
+  margin-bottom: 16px;
+}
+.ai-block-hd {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.ai-block-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.ai-tag {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-family: 'DM Mono', monospace;
+  padding: 2px 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.55);
+}
+.ai-icon {
+  width: 28px; height: 28px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ai-icon svg { width: 14px; height: 14px; }
+
+.ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ai-cell {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.ai-cell-lbl {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--blue-200);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+/* ─── AI REPORT ─── */
+.report-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.report-hd {
+  background: linear-gradient(90deg, var(--blue-900) 0%, var(--blue-800) 100%);
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.report-hd-title { font-family: 'Noto Serif SC', serif; font-size: 14.5px; font-weight: 600; color: #fff; }
+.report-hd-sub { font-size: 10.5px; color: var(--blue-200); font-family: 'DM Mono', monospace; }
+
+.score-strip {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+}
+.score-cell { background: var(--white); padding: 14px 10px; text-align: center; }
+.score-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+}
+.sv-green  { color: #059669; }
+.sv-gold   { color: #b45309; }
+.sv-red    { color: var(--danger); }
+.score-name { font-size: 10.5px; color: var(--text-2); margin-top: 3px; }
+
+.issue-item {
+  display: flex;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  margin-bottom: 7px;
+  font-size: 12.5px;
+  align-items: flex-start;
+}
+.issue-item.i-yellow { background: var(--warn-bg); border: 1px solid #fcd34d; }
+.issue-item.i-green  { background: var(--success-bg); border: 1px solid #6ee7b7; }
+.issue-item.i-red    { background: var(--danger-bg); border: 1px solid #fca5a5; }
+.issue-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.id-yellow { background: var(--warn); }
+.id-green  { background: var(--success); }
+.id-red    { background: var(--danger); }
+.issue-text {}
+.issue-title { font-weight: 600; margin-bottom: 3px; color: var(--ink); }
+.issue-desc  { color: var(--text-2); line-height: 1.55; }
+
+/* ─── AI CHECK STANDALONE PAGE ─── */
+.qc-issue-list { padding: 16px 20px 20px; }
+.qc-list-title { font-size: 12.5px; font-weight: 600; margin-bottom: 12px; color: var(--ink-2); }
+.qc-issue-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: box-shadow .2s;
+}
+.qc-issue-card.qc-red   { border-left: 3px solid var(--danger); }
+.qc-issue-card.qc-yellow { border-left: 3px solid var(--warn); }
+.qc-issue-card.qc-green  { border-left: 3px solid var(--success); }
+.qc-issue-card.expanded  { box-shadow: 0 2px 12px rgba(15,31,61,.08); }
+.qc-issue-hd {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+.qc-level-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.qc-lb-red    { background: var(--danger-bg); color: #991b1b; border: 1px solid #fca5a5; }
+.qc-lb-yellow { background: var(--warn-bg); color: #92400e; border: 1px solid #fcd34d; }
+.qc-lb-green  { background: var(--success-bg); color: #065f46; border: 1px solid #6ee7b7; }
+.qc-issue-title { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.5; flex: 1; }
+.qc-issue-body { padding: 8px 16px 14px; }
+.qc-issue-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.65; margin: 0 0 10px; }
+.qc-issue-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.qc-ack-btn {
+  background: #991b1b !important;
+  color: #fff !important;
+  border-color: #991b1b !important;
+  margin-bottom: 8px;
+}
+.qc-ack-btn:hover { background: #7f1d1d !important; }
+.qc-ack-done {
+  font-size: 12px;
+  color: #991b1b;
+  background: var(--danger-bg);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.qc-ack-check { font-weight: 700; margin-right: 4px; }
+.qc-expand-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+}
+.qc-expand-btn:hover { text-decoration: underline; }
+.qc-issue-detail {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.qc-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.qc-detail-item { grid-column: span 2; }
+.qc-detail-half { grid-column: span 1; }
+@media (max-width: 640px) {
+  .qc-detail-item, .qc-detail-half { grid-column: span 2; }
+}
+.qc-detail-lbl {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.qc-detail-val { font-size: 12.5px; color: var(--ink-2); line-height: 1.65; }
+.qc-submit-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.qc-submit-hint {
+  font-size: 12.5px;
+  color: #991b1b;
+  background: var(--danger-bg);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-top: 14px;
+  line-height: 1.55;
+}
+.form-textarea.locate-flash {
+  box-shadow: 0 0 0 2px var(--primary);
+  animation: locate-pulse 1.6s ease;
+}
+@keyframes locate-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--primary); }
+  50% { box-shadow: 0 0 0 4px rgba(37,99,235,.35); }
+}
+.submit-success-wrap {
+  text-align: center;
+  padding: 48px 24px 32px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.submit-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: #059669;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  border: 2px solid #6ee7b7;
+}
+.submit-success-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.submit-success-desc {
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ─── SCORE BAR ─── */
+.score-bar-row { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+.sbl { width: 78px; font-size: 12px; color: var(--text-2); flex-shrink: 0; }
+.sbw { flex: 1; background: var(--border-2); border-radius: 4px; height: 7px; }
+.sbf { height: 100%; border-radius: 4px; }
+.sbv { width: 28px; text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; flex-shrink: 0; }
+
+/* ─── DOCUMENT VIEW ─── */
+.doc-viewer {
+  background: #fafbfd;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.doc-viewer-toolbar {
+  padding: 10px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.doc-viewer-title { font-size: 13px; font-weight: 600; color: var(--ink-2); flex: 1; }
+.doc-body {
+  padding: 20px 24px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--text);
+  max-height: 380px;
+  overflow-y: auto;
+}
+.doc-body h3 { font-size: 14px; font-weight: 600; color: var(--ink); margin: 14px 0 6px; }
+.doc-body p  { margin-bottom: 10px; }
+.hl-yellow { background: #fef08a; border-bottom: 1.5px solid #ca8a04; padding: 0 2px; border-radius: 2px; cursor: pointer; }
+.hl-red    { background: #fecaca; border-bottom: 1.5px solid #dc2626; padding: 0 2px; border-radius: 2px; cursor: pointer; }
+.annotation {
+  font-size: 12px;
+  background: #fff9c4;
+  border-left: 3px solid #ca8a04;
+  padding: 5px 9px;
+  border-radius: 0 3px 3px 0;
+  margin: 4px 0 8px;
+  color: #78350f;
+  line-height: 1.5;
+}
+.annotation.a-blue { background: var(--blue-50); border-left-color: var(--primary); color: var(--blue-800); }
+.annotation.a-red  { background: #fff5f5; border-left-color: var(--danger); color: #991b1b; }
+.mentor-annot { position: relative; padding-right: 8px; }
+.mentor-annot .annot-hd {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 3px; flex-wrap: wrap;
+}
+.mentor-annot .annot-author { font-size: 11px; font-weight: 600; color: var(--ink); }
+.mentor-annot .annot-time { font-size: 10px; color: var(--text-3); }
+.mentor-annot .annot-toolbar { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.mentor-annot .annot-tool-btn {
+  font-size: 10.5px; padding: 2px 8px; border: 1px solid var(--border);
+  border-radius: 4px; background: var(--white); color: var(--text-2);
+  cursor: pointer; font-family: inherit; line-height: 1.4;
+}
+.mentor-annot .annot-tool-btn:hover { border-color: var(--primary); color: var(--primary); }
+.mentor-annot .annot-tool-btn.is-active {
+  background: #fff5f5; border-color: #fca5a5; color: #991b1b; font-weight: 600;
+}
+.mentor-annot .annot-tool-btn.annot-tool-save {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+}
+.mentor-annot .annot-tool-btn.annot-tool-save:hover { background: var(--primary-dark); }
+.mentor-annot .annot-del {
+  background: none; border: none; color: var(--text-3);
+  font-size: 16px; cursor: pointer; line-height: 1; padding: 2px 6px;
+}
+.mentor-annot .annot-del:hover { color: var(--danger); }
+.mentor-annot .annot-body { font-size: 12.5px; line-height: 1.55; }
+.mentor-annot .annot-body.is-editing {
+  outline: 1px dashed var(--primary);
+  background: #fff;
+  border-radius: 4px;
+  padding: 4px 6px;
+  min-height: 1.5em;
+}
+.hl-annot-mark {
+  background: rgba(254, 240, 138, 0.35);
+  border-bottom: 2px solid #ca8a04;
+  padding: 0 1px;
+  border-radius: 0;
+  text-decoration: underline;
+  text-decoration-color: #ca8a04;
+  text-underline-offset: 2px;
+}
+.hl-annot-mark.hl-annot-red {
+  background: rgba(254, 202, 202, 0.45);
+  border-bottom-color: #dc2626;
+  text-decoration-color: #dc2626;
+}
+.annot-inline-draft {
+  display: inline;
+  min-width: 72px;
+  max-width: 100%;
+  outline: none;
+  border: none;
+  border-bottom: 1.5px dashed var(--primary);
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 0 4px;
+  margin: 0 2px;
+  vertical-align: baseline;
+  font-family: inherit;
+}
+.annot-inline-draft:empty::before {
+  content: '输入批注…';
+  color: var(--text-3);
+  font-style: italic;
+  pointer-events: none;
+}
+.annot-compose-panel {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius);
+  border-left: 3px solid #ca8a04;
+}
+.annot-compose-panel .annot-inline-draft {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  min-height: 32px;
+}
+.annot-compose-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.annot-compose-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.4;
+  transition: background .12s, color .12s;
+}
+.annot-compose-btn:hover { background: rgba(15, 31, 61, 0.05); color: var(--ink); }
+.annot-compose-btn.annot-compose-ai {
+  background: rgba(0, 105, 92, 0.08);
+  color: #00695c;
+  font-weight: 500;
+}
+.annot-compose-btn.annot-compose-ai:hover { background: rgba(0, 105, 92, 0.14); }
+.annot-compose-btn.annot-compose-ai.is-open {
+  background: linear-gradient(135deg, #00695c, #00897b);
+  color: #fff;
+}
+.annot-compose-btn.annot-compose-close { color: var(--text-3); }
+.annot-compose-btn.annot-compose-close:hover { color: var(--text-2); background: rgba(15, 31, 61, 0.04); }
+.annot-compose-btn.annot-compose-confirm {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 500;
+  margin-left: auto;
+}
+.annot-compose-btn.annot-compose-confirm:hover { background: var(--primary-dark); color: #fff; }
+.hl-annot-mark[data-temp-mark] {
+  background: rgba(254, 240, 138, 0.2);
+  border-bottom-style: dashed;
+  text-decoration-style: dashed;
+}
+.annot-ai-suggestions {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #fcd34d;
+}
+.annot-ai-suggest-hd {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.annot-ai-suggest-item {
+  font-size: 12px;
+  line-height: 1.55;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.annot-ai-suggest-item:hover {
+  border-color: #00897b;
+  background: #f0fdf4;
+}
+.annot-ai-suggest-item:last-child { margin-bottom: 0; }
+.mentor-diff-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: 400px;
+}
+@media (max-width: 768px) {
+  .mentor-diff-layout { grid-template-columns: 1fr; }
+}
+.mentor-diff-pane {
+  padding: 16px 18px;
+  overflow-y: auto;
+  max-height: 520px;
+  font-size: 13px;
+  line-height: 1.85;
+}
+.mentor-diff-pane + .mentor-diff-pane { border-left: 1px solid var(--border); }
+.mentor-diff-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+}
+.mentor-diff-pane h3 { font-size: 13.5px; font-weight: 600; margin: 12px 0 6px; }
+.diff-del {
+  background: #fecaca;
+  color: #991b1b;
+  text-decoration: line-through;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+.diff-ins {
+  background: #bbf7d0;
+  color: #065f46;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+.mentor-diff-legend {
+  display: flex;
+  gap: 14px;
+  padding: 8px 14px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-2);
+}
+.heritage-seg-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.heritage-color-btn {
+  font-size: 10px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+}
+.heritage-color-btn.active { font-weight: 700; box-shadow: 0 0 0 1px currentColor; }
+.heritage-color-btn.hcb-orange.active { color: #c2410c; border-color: #fdba74; background: #fff7ed; }
+.heritage-color-btn.hcb-blue.active { color: #1d4ed8; border-color: #93c5fd; background: #eff6ff; }
+.heritage-color-btn.hcb-green.active { color: #047857; border-color: #6ee7b7; background: #f0fdf4; }
+.heritage-corrections {
+  margin: 0 20px 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.heritage-corrections-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.heritage-correction-item {
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.55;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.heritage-correction-item:last-child { border-bottom: none; }
+.heritage-pending-bar {
+  margin: 0 20px 12px;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.heritage-pending-bar .pending-text { font-size: 12.5px; color: #78350f; line-height: 1.5; }
+.mentor-diff-pane .annotation,
+.mentor-diff-pane .mentor-annot {
+  margin: 6px 0 10px;
+  pointer-events: none;
+}
+#version-diff-body {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow: hidden;
+}
+#version-diff-body .mentor-diff-pane { max-height: 480px; }
+#mentor-doc-body.annot-mode { cursor: text; }
+#mentor-doc-body.annot-mode ::selection { background: #fde68a; }
+#mentor-btn-annot.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.mentor-review-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .mentor-review-layout { grid-template-columns: 1fr; }
+}
+.mentor-doc-col .doc-body { max-height: 520px; }
+.mentor-ver-switch { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.mentor-ver-btn {
+  font-size: 11px; padding: 3px 10px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--white); color: var(--text-2);
+  cursor: pointer; font-family: 'DM Mono', monospace;
+}
+.mentor-ver-btn.active { border-color: var(--primary); background: var(--blue-50); color: var(--primary); font-weight: 600; }
+.mentor-ai-panel .ai-block { margin-bottom: 12px; }
+.mentor-advisor-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mentor-advisor-stack .ai-cell { width: 100%; box-sizing: border-box; }
+.mentor-ver-change-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  color: rgba(255,255,255,0.9);
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.mentor-ver-change-card:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.28);
+}
+.mentor-ver-change-card.is-active {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 1px rgba(147,197,253,0.35);
+}
+.mentor-ver-change-card.is-empty {
+  cursor: default;
+  opacity: 0.75;
+}
+.mvc-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.mvc-title {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--blue-200);
+  font-weight: 500;
+}
+.mvc-ver { font-size: 10px; color: rgba(255,255,255,0.55); }
+.mvc-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.mvc-stat {
+  font-size: 10.5px;
+  font-family: 'DM Mono', monospace;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.mvc-add { background: rgba(187,247,208,0.2); color: #bbf7d0; }
+.mvc-del { background: rgba(254,202,202,0.2); color: #fecaca; }
+.mvc-mod { background: rgba(254,240,138,0.2); color: #fde68a; }
+.mvc-none { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+.mvc-summary {
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 0 0 8px;
+  color: rgba(255,255,255,0.82);
+}
+.mvc-foot { font-size: 10.5px; color: var(--blue-200); }
+.mentor-ai-panel .meta-card { margin-bottom: 12px; }
+.heritage-entry-btn {
+  width: 100%; text-align: left; padding: 12px 14px;
+  background: linear-gradient(135deg, #fff7ed 0%, #eff6ff 50%, #f0fdf4 100%);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  cursor: pointer; font-family: inherit; transition: box-shadow .15s;
+}
+.heritage-entry-btn:hover { box-shadow: 0 2px 10px rgba(15,31,61,.08); }
+.heritage-entry-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.heritage-entry-desc { font-size: 11.5px; color: var(--text-2); line-height: 1.5; }
+.heritage-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 10000;
+  background: rgba(15,31,61,.45); align-items: center; justify-content: center;
+  padding: 24px;
+}
+.heritage-modal-overlay.open { display: flex; }
+.heritage-modal-box {
+  background: var(--white); border-radius: var(--radius-lg);
+  width: 100%; max-width: 720px; max-height: 85vh;
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(15,31,61,.2);
+}
+#heritage-modal-body { overflow-y: auto; flex: 1; }
+.heritage-modal-hd {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #00695c 0%, #00897b 100%);
+  color: #fff;
+}
+.heritage-modal-title { font-size: 15px; font-weight: 600; }
+.heritage-modal-sub { font-size: 11px; opacity: .75; margin-top: 4px; font-family: 'DM Mono', monospace; }
+.heritage-modal-close {
+  background: rgba(255,255,255,.15); border: none; color: #fff;
+  width: 32px; height: 32px; border-radius: 50%; font-size: 20px;
+  cursor: pointer; line-height: 1; flex-shrink: 0;
+}
+.heritage-modal-close:hover { background: rgba(255,255,255,.25); }
+.heritage-legend {
+  display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 20px;
+  background: #fafafa; border-bottom: 1px solid var(--border); font-size: 11.5px;
+}
+.heritage-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-2); }
+.hb-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.hb-orange { background: #ea580c; }
+.hb-blue { background: #2563eb; }
+.hb-green { background: #059669; }
+.heritage-stats {
+  display: flex; gap: 10px; padding: 12px 20px; flex-wrap: wrap;
+}
+.heritage-stat {
+  font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 4px;
+}
+.hs-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+.hs-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; }
+.hs-green { background: #f0fdf4; color: #047857; border: 1px solid #6ee7b7; }
+.heritage-seg-list { padding: 8px 20px 16px; }
+.heritage-seg {
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px;
+  border-left: 4px solid transparent;
+}
+.heritage-orange { background: #fff7ed; border-left-color: #ea580c; border: 1px solid #fed7aa; border-left-width: 4px; }
+.heritage-blue { background: #eff6ff; border-left-color: #2563eb; border: 1px solid #bfdbfe; border-left-width: 4px; }
+.heritage-green { background: #f0fdf4; border-left-color: #059669; border: 1px solid #a7f3d0; border-left-width: 4px; }
+.heritage-seg-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.heritage-type-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; color: #fff;
+}
+.heritage-type-badge.hb-orange { background: #ea580c; }
+.heritage-type-badge.hb-blue { background: #2563eb; }
+.heritage-type-badge.hb-green { background: #059669; }
+.heritage-type-name { font-size: 11px; color: var(--text-2); font-weight: 500; }
+.heritage-seg-text { font-size: 13px; line-height: 1.7; color: var(--ink); margin-bottom: 8px; }
+.heritage-seg-source { font-size: 11.5px; color: var(--text-2); line-height: 1.55; }
+.heritage-src-lbl {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--text-3); margin-right: 6px;
+}
+.heritage-modal-ft {
+  padding: 10px 20px; font-size: 10.5px; color: var(--text-3);
+  font-family: 'DM Mono', monospace; border-top: 1px solid var(--border);
+  background: #fafafa;
+}
+.heritage-kg-section { padding: 16px 20px 12px; border-top: 1px solid var(--border); }
+.heritage-kg-title { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+.heritage-kg-section .kg-wrap {
+  min-height: 228px;
+  height: auto;
+  padding: 18px 14px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #004d40 0%, #00695c 55%, #00897b 100%);
+}
+.heritage-kg-section .kg-wrap svg {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  height: auto;
+}
+.heritage-kg-caption {
+  font-size: 10.5px; color: var(--text-3); font-family: 'DM Mono', monospace;
+  text-align: center; margin-bottom: 4px;
+}
+.sign-confirm-overlay {
+  display: none; position: fixed; inset: 0; z-index: 10001;
+  background: rgba(15,31,61,.45); align-items: center; justify-content: center; padding: 24px;
+}
+.sign-confirm-overlay.open { display: flex; }
+.sign-confirm-box {
+  background: var(--white); border-radius: var(--radius-lg);
+  width: 100%; max-width: 420px; padding: 24px;
+  box-shadow: 0 20px 60px rgba(15,31,61,.2);
+}
+.sign-confirm-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+.sign-confirm-warn {
+  font-size: 13.5px; line-height: 1.75; color: #991b1b;
+  background: var(--danger-bg); border: 1px solid #fca5a5;
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px;
+}
+.sign-confirm-desc { font-size: 13px; color: var(--text-2); line-height: 1.65; margin-bottom: 18px; }
+.sign-confirm-notice {
+  margin: 0 0 18px;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.75;
+}
+.sign-confirm-notice li { margin-bottom: 8px; }
+.sign-confirm-notice li:last-child { margin-bottom: 0; }
+#mentor-btn-approve.is-awaiting-sign { opacity: 0.65; }
+.sign-confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ─── VERSION ─── */
+.version-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.version-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f0f0f0;
+  color: var(--ink-2, #374151);
+  border: 1px solid #e5e5e5;
+  padding: 3px 9px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.v-info { flex: 1; min-width: 180px; }
+.v-note { font-size: 12.5px; font-weight: 500; color: var(--ink); }
+.v-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.v-status-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.version-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  cursor: default;
+  user-select: none;
+}
+.version-status-pill.is-current {
+  background: #e6f4ff;
+  color: #0958d9;
+  border-color: #91caff;
+}
+.version-status-pill.is-history {
+  background: #f5f5f5;
+  color: #8c8c8c;
+  border-color: #e8e8e8;
+}
+.version-status-pill.is-locked {
+  background: #fff7e6;
+  color: #d46b08;
+  border-color: #ffd591;
+}
+.v-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.version-detail-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.sample-paper-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-2);
+}
+.sample-paper-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fafafa;
+  transition: border-color .15s, background .15s;
+}
+.sample-paper-item:hover {
+  border-color: var(--primary);
+  background: var(--blue-50, #eff6ff);
+}
+.sample-paper-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.sample-paper-body { flex: 1; min-width: 0; }
+.sample-paper-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.sample-paper-desc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.sample-paper-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+.sample-paper-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.sample-type-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #f9f0ff;
+  color: #722ed1;
+  border: none;
+}
+
+/* ─── 学生首页 · 批次进展看板 ─── */
+.stage-board-body {
+  padding: 14px 18px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.stage-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: left;
+  font-family: inherit;
+}
+.stage-chip:hover {
+  border-color: var(--primary);
+  background: var(--blue-50, #eff6ff);
+}
+.stage-chip-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.stage-chip-lbl {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2, #374151);
+}
+.stage-chip-hint {
+  font-size: 10.5px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+/* ─── KG SVG ─── */
+.kg-wrap {
+  background: var(--blue-900);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── QUICK CARDS ─── */
+.quick-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.quick-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 15px 17px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quick-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+.quick-ic {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.qic-blue   { background: var(--blue-100); }
+.qic-green  { background: #d1fae5; }
+.qic-purple { background: #f3e8ff; }
+.qic-slate  { background: #e2e8f0; }
+.quick-text {}
+.quick-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+.quick-desc  { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+
+/* ─── AGENT CARDS ─── */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.agent-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agent-card-hd { display: flex; align-items: center; gap: 8px; }
+.agent-card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.agent-card-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+.agent-card-desc { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+.agent-card-link { font-size: 11.5px; color: var(--primary); cursor: pointer; }
+.agent-card-link:hover { text-decoration: underline; }
+
+/* ─── UTIL ─── */
+.mono { font-family: 'DM Mono', monospace; }
+.text-blue { color: var(--primary); }
+.text-green { color: var(--success); }
+.text-warn  { color: var(--warn); }
+.text-danger{ color: var(--danger); }
+.text-muted { color: var(--text-2); }
+.text-xs    { font-size: 11.5px; }
+.fw-6 { font-weight: 600; }
+
+/* ─── AI INLINE ASSIST ─── */
+.ai-assist-bar {
+  background: var(--blue-50);
+  border: 1px solid var(--blue-200);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.ai-assist-label { font-size: 12px; color: var(--blue-800); font-weight: 500; }
+.ai-assist-btns  { display: flex; gap: 6px; margin-left: auto; }
+.aab {
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border: 1px solid var(--blue-200);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+.aab:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ─── PROGRESS BAR ─── */
+.prog-wrap { background: var(--border-2); border-radius: 4px; height: 5px; }
+.prog-fill { height: 100%; border-radius: 4px; background: var(--primary); }
+
+/* ─── TOAST ─── */
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: var(--ink); color: #fff; padding: 10px 16px; border-radius: var(--radius); font-size: 13px; box-shadow: 0 4px 20px rgba(15,31,61,.18); animation: toast-in .25s ease; max-width: 340px; line-height: 1.5; }
+.toast.success { border-left: 3px solid #059669; }
+.toast.warn { border-left: 3px solid #b45309; }
+.toast.info { border-left: 3px solid var(--primary-mid); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.my-proj-status.st-rejected { background: #fee2e2; color: #b91c1c; font-weight: 600; }
+.my-proj-status.st-failed { background: #fef2f2; color: #991b1b; font-weight: 600; }
+.my-proj-status.st-appeal { background: #fff7ed; color: #c2410c; font-weight: 600; }
+</style>
+<link rel="stylesheet" href="argp-theme.css">
+</head>
+<body data-argp-app="index">
+
+<header class="global-header">
+  <div class="gh-brand">
+    <div>
+      <div class="gh-title-main">AI学术评审与治理平台</div>
+      <div class="gh-title-sub">ARGP · Academic Review & Governance</div>
+    </div>
+  </div>
+  <div class="gh-search-wrap">
+    <input class="gh-search" placeholder="全局搜索（项目、专家、任务编号…）">
+  </div>
+  <div class="gh-actions">
+    <div class="gh-feed-wrap" id="gh-feed-wrap">
+      <button class="gh-text-btn" type="button" id="gh-feed-btn">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a6 6 0 00-6 6v.5L1 10h14l-1-2.5V7a6 6 0 00-6-6zm-1.5 13a1.5 1.5 0 003 0h-3z"/></svg>
+        <span class="gh-text-btn-label">站内信息</span>
+        <span class="gh-badge-inline" id="gh-feed-badge" style="display:none">0</span>
+      </button>
+      <div class="gh-feed-panel" id="gh-feed-panel">
+        <div class="gh-feed-hd"><strong>消息</strong><a href="#" id="gh-feed-view-all">查看全部 ›</a></div>
+        <div class="gh-feed-tabs">
+          <button class="gh-feed-tab active" type="button" data-filter="all">全部</button>
+          <button class="gh-feed-tab" type="button" data-filter="flow">流程</button>
+          <button class="gh-feed-tab" type="button" data-filter="pub">公示</button>
+          <button class="gh-feed-tab" type="button" data-filter="obj" data-roles="secretary">异议</button>
+        </div>
+        <div class="gh-feed-list" id="gh-feed-list"></div>
+      </div>
+    </div>
+    <div class="gh-more-wrap" id="gh-more-wrap">
+      <button class="gh-icon-btn" type="button" id="gh-more-btn" title="更多">···</button>
+      <div class="gh-more-panel" id="gh-more-panel">
+        <a href="#">使用手册</a>
+        <a href="#">问题反馈</a>
+      </div>
+    </div>
+    <div class="gh-user-wrap">
+      <button class="gh-user" type="button" id="gh-user-btn">
+        <div class="gh-avatar">李</div>
+        <span class="gh-role-badge" id="gh-role-badge">学生</span>
+      </button>
+      <div class="gh-account-panel" id="gh-account-panel">
+        <div class="acc-hd">
+          <div class="acc-name" id="acc-name">李同学</div>
+          <div class="acc-role" id="acc-role">学生</div>
+          <div class="acc-dept" id="acc-dept">计算机科学与技术学院 · 2022级</div>
+        </div>
+        <div class="acc-bd">
+          <div class="acc-cap-wrap" id="acc-cap-wrap" style="display:none">
+            <div class="acc-cap-label">教师身份</div>
+            <div class="acc-cap-list" id="acc-cap-list"></div>
+          </div>
+          <a class="acc-item" href="login.html" id="acc-switch">切换角色</a>
+          <button class="acc-item danger" type="button" id="acc-logout">退出登录</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app-body">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <nav>
+    <div class="nav-group">
+      <div class="nav-label">工作台</div>
+      <a class="nav-item active" data-nav="home" data-roles="student" onclick="nav(this,'home')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8.707 1.5a1 1 0 00-1.414 0L1.5 7.293A1 1 0 002 9h1v5a1 1 0 001 1h2.5v-4h3V15H12a1 1 0 001-1V9h1a1 1 0 00.5-1.707L8.707 1.5z"/></svg>
+        首页
+        <span class="nav-badge" data-roles="student">3</span>
+      </a>
+      <a class="nav-item" data-nav="home" data-roles="teacher" data-teacher-caps="mentor" onclick="nav(this,'home')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8.707 1.5a1 1 0 00-1.414 0L1.5 7.293A1 1 0 002 9h1v5a1 1 0 001 1h2.5v-4h3V15H12a1 1 0 001-1V9h1a1 1 0 00.5-1.707L8.707 1.5z"/></svg>
+        首页
+        <span class="nav-badge" data-roles="teacher" data-teacher-caps="mentor">2</span>
+      </a>
+    </div>
+
+    <div class="nav-group" data-roles="student">
+      <div class="nav-label">项目中心</div>
+      <a class="nav-item" data-nav="proj-new" data-roles="student" onclick="nav(this,'proj-new')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a1 1 0 011 1v5h5a1 1 0 110 2H9v5a1 1 0 11-2 0V10H2a1 1 0 110-2h5V3a1 1 0 011-1z"/></svg>
+        项目申请
+      </a>
+      <a class="nav-item" data-nav="my-proj" data-roles="student" onclick="nav(this,'my-proj')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6zm3 2v1h6V8H5zm0 2v1h4v-1H5z"/></svg>
+        我的项目
+      </a>
+      <a class="nav-item" data-nav="proj-pub" data-roles="student" onclick="nav(this,'proj-pub')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.3 5.3l-4 4a1 1 0 01-1.4 0l-2-2a1 1 0 011.4-1.4L7 8.6l3.3-3.3a1 1 0 011.4 1.4z"/></svg>
+        立项项目公示
+      </a>
+    </div>
+    <div class="nav-group" data-roles="student">
+      <div class="nav-label">AI 服务</div>
+      <a class="nav-item" data-nav="ai-assistant" data-roles="student" onclick="nav(this,'ai-assistant')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11l3.5-7 3 5 2-3L13 11H1zm13-8a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+        AI 助手
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label" data-roles="teacher,secretary">项目中心</div>
+      <a class="nav-item" data-nav="proj-list" data-roles="teacher,secretary" onclick="nav(this,'proj-list')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6zm3 2v1h6V8H5zm0 2v1h4v-1H5z"/></svg>
+        项目列表
+      </a>
+      <a class="nav-item" data-nav="mentor-list" data-roles="teacher" data-teacher-caps="mentor" onclick="nav(this,'mentor-list')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zm-5 9a1 1 0 011-1h8a1 1 0 011 1v1c0 1.657-2.015 3-4.5 3S3 12.657 3 11v-1z"/></svg>
+        导师工作台
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">评审工作台</div>
+      <a class="nav-item" data-roles="teacher" data-teacher-caps="expert,chair" href="review.html#expert">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l2 4h4l-3.2 2.5 1.2 4.5L8 10.5 3.8 12l1.2-4.5L2 5h4L8 1z"/></svg>
+        专家评审
+      </a>
+      <a class="nav-item" data-roles="teacher" data-teacher-caps="expert,chair" href="review.html#defense">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v2H2V3zm0 4h8v6H2V7zm10 0h2v6h-2V7z"/></svg>
+        答辩评审
+      </a>
+      <a class="nav-item" data-roles="teacher" data-teacher-caps="chair" href="review.html#chair">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10v2H3V2zm1 4h8l1 6H3l1-6zm3 8h2v2H7v-2z"/></svg>
+        评审组长台
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">评审管理</div>
+      <a class="nav-item" data-roles="secretary" href="review.html">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zm2 3v1h6V5H5zm0 3v1h6V8H5zm0 3v1h4v-1H5z"/></svg>
+        秘书受理台
+      </a>
+      <a class="nav-item" data-roles="secretary" href="review.html#progress">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v2H2V2zm0 4h8v8H2V6zm10 0h2v8h-2V6z"/></svg>
+        进度监控
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <a class="sidebar-admin-link" href="#" data-roles="secretary">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 4.754a3.246 3.246 0 100 6.492 3.246 3.246 0 000-6.492zM5.754 8a2.246 2.246 0 114.492 0 2.246 2.246 0 01-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 01-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 01-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 01.52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 011.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 011.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 01.52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 01-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 01-1.255-.52l-.094-.319z"/></svg>
+      管理后台
+    </a>
+    <div class="sidebar-copyright">
+      <div>Copyright © ARGP</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <nav class="page-breadcrumb" id="page-breadcrumb" aria-label="面包屑"></nav>
+  </div>
+
+  <div class="content">
+
+<!-- ══════════════════════════
+     HOME PAGE
+══════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <!-- 学生工作台 -->
+  <div class="home-role-block" data-roles="student">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:20px;">
+      <div>
+        <div class="page-title">学生工作台</div>
+        <div class="page-sub">李同学 · 2026年春季 · 第二评审批次</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card c-blue stat-card-with-icon">
+        <div class="stat-icon ic-blue"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm-.5 2v3.5l2.5 1.5a.5.5 0 01-.5.866L7 9.268V5z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">我的待办</div>
+          <div class="stat-num" id="home-stat-todo-num">4</div>
+          <div class="stat-hint">含秘书处退件与答辩安排</div>
+        </div>
+      </div>
+      <div class="stat-card c-teal stat-card-with-icon">
+        <div class="stat-icon ic-green"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">我的申报项目</div>
+          <div class="stat-num">7</div>
+          <div class="stat-hint">进行中 6 · 已公示 1</div>
+        </div>
+      </div>
+      <div class="stat-card c-indigo stat-card-with-icon">
+        <div class="stat-icon ic-purple"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11l3.5-7 3 5 2-3L13 11H1z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">AI 自检得分</div>
+          <div class="stat-num">82</div>
+          <div class="stat-hint">最近一次自检 · 仅供参考</div>
+        </div>
+      </div>
+      <div class="stat-card c-green stat-card-with-icon">
+        <div class="stat-icon ic-orange"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v2H2V2zm0 4h8v8H2V6zm10 0h2v8h-2V6z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">流程进行中</div>
+          <div class="stat-num" id="home-active-count">—</div>
+          <div class="stat-hint" id="home-active-hint">统计本批次活跃项目</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="home-stage-board" style="margin-bottom:18px;">
+      <div class="panel-hd">
+        <div class="panel-title">本批次进展</div>
+        <span class="text-xs text-muted">2026年春季 · 第二批次</span>
+        <a class="panel-ml section-action" onclick="showPage('my-proj')">全部项目</a>
+      </div>
+      <div id="home-stage-board-body" class="stage-board-body"></div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">我的待办</div>
+          <span class="panel-count" id="home-todo-count">4</span>
+        </div>
+        <div id="home-todo-list">
+        <div class="todo-item" data-todo-static="reject">
+          <div class="todo-dot" style="background:#dc2626"></div>
+          <div class="todo-body">
+            <div class="todo-title">秘书处退件 · 《边缘计算环境下的任务调度优化》</div>
+            <div class="todo-meta">秘书处退件 · 请修改后重提 · PROJ-2026-0099</div>
+          </div>
+          <button class="todo-cta" type="button" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0099')">修改材料</button>
+        </div>
+        <div class="todo-item" data-todo-static="1">
+          <div class="todo-dot" style="background:#2563eb"></div>
+          <div class="todo-body">
+            <div class="todo-title">待导师审核 · 《强化学习路径规划》</div>
+            <div class="todo-meta">已提交 · 指导导师：张明远教授 · 待审阅</div>
+          </div>
+          <button class="todo-cta" onclick="showPage('proj-detail')">查看进度</button>
+        </div>
+        <div class="todo-item" data-todo-static="2">
+          <div class="todo-dot" style="background:#7c3aed"></div>
+          <div class="todo-body">
+            <div class="todo-title">待参加答辩 · 《联邦学习隐私保护框架》</div>
+            <div class="todo-meta">答辩时间：2026-03-22 14:00 · 第三会议室</div>
+          </div>
+          <button class="todo-cta" onclick="openAiAssistant('defense','PROJ-2026-0045')">查看安排</button>
+        </div>
+        <div class="todo-item" data-todo-static="3">
+          <div class="todo-dot" style="background:#059669"></div>
+          <div class="todo-body">
+            <div class="todo-title">AI自检完成 · 《强化学习路径规划》发现 2 处黄色风险</div>
+            <div class="todo-meta">建议修改后提交导师审核</div>
+          </div>
+          <button class="todo-cta" onclick="openAiAssistant('quality','PROJ-2026-0087',true)">查看报告</button>
+        </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">我的项目</div>
+          <a class="panel-ml section-action" onclick="showPage('my-proj')">查看全部</a>
+        </div>
+        <div id="home-my-proj-list" class="my-proj-list" style="padding:0 14px 14px;">
+        <div class="my-proj-card my-proj-card-compact" role="button" tabindex="0" style="border-left:3px solid #dc2626;" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0099')">
+          <div class="my-proj-card-main">
+            <div class="my-proj-card-title">边缘计算环境下的任务调度优化</div>
+            <div class="my-proj-card-meta mono">PROJ-2026-0099</div>
+          </div>
+          <span class="my-proj-status st-rejected">秘书处退件</span>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-hd"><div class="section-title">快捷入口</div></div>
+    <div class="quick-row">
+      <div class="quick-card" onclick="showPage('proj-new')">
+        <div class="quick-ic qic-blue">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">项目申请</div>
+          <div class="quick-desc">撰写申请书与 AI 质量自检</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="openAiAssistant('writing')">
+        <div class="quick-ic qic-purple">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11l3.5-7 3 5 2-3L13 11H1zm13-8a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">AI 助手</div>
+          <div class="quick-desc">辅助写作 · 质量检测 · 答辩助手</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="showPage('proj-pub')">
+        <div class="quick-ic qic-green">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#059669"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.3 5.3l-4 4a1 1 0 01-1.4 0l-2-2a1 1 0 011.4-1.4L7 8.6l3.3-3.3a1 1 0 011.4 1.4z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">立项项目公示</div>
+          <div class="quick-desc">查看批次立项结果公开信息</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="showPage('my-proj')">
+        <div class="quick-ic qic-green">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#059669"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">我的项目</div>
+          <div class="quick-desc">查看申报进度与材料状态</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="window.ARGP_UI&&window.ARGP_UI.openMsgDrawer()">
+        <div class="quick-ic qic-slate">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#475569"><path d="M2 2h12v10H2V2zm2 2v6h8V4H4zm0 2h8v1H4V6zm0 2h5v1H4V8z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">消息通知</div>
+          <div class="quick-desc">答辩安排、公示与流程提醒</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导师工作台（教师端 · 导师身份） -->
+  <div class="home-role-block role-hidden" data-roles="teacher" data-teacher-caps="mentor">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:20px;">
+      <div>
+        <div class="page-title">导师工作台</div>
+        <div class="page-sub">张明远 教授 · 待审阅 2 项 · 指导学生 8 人</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card c-blue stat-card-with-icon">
+        <div class="stat-icon ic-blue"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm-.5 2v3.5l2.5 1.5a.5.5 0 01-.5.866L7 9.268V5z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">待审阅</div>
+          <div class="stat-num">2</div>
+          <div class="stat-hint">学生申请书待处理</div>
+        </div>
+      </div>
+      <div class="stat-card c-teal stat-card-with-icon">
+        <div class="stat-icon ic-green"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zm-5 9a1 1 0 011-1h8a1 1 0 011 1v1c0 1.657-2.015 3-4.5 3S3 12.657 3 11v-1z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">指导学生项目</div>
+          <div class="stat-num">8</div>
+          <div class="stat-hint">待审阅 2 · 评审中 3</div>
+        </div>
+      </div>
+      <div class="stat-card c-green stat-card-with-icon">
+        <div class="stat-icon ic-orange"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M7 1a3 3 0 100 6 3 3 0 000-6zm-4 9h8l1 5H2l1-5z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">本批次通过率</div>
+          <div class="stat-num">73%</div>
+          <div class="stat-hint">本院指导项目均值</div>
+        </div>
+      </div>
+      <div class="stat-card c-indigo stat-card-with-icon">
+        <div class="stat-icon ic-purple"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/></svg></div>
+        <div class="stat-body">
+          <div class="stat-lbl">在研项目</div>
+          <div class="stat-num">5</div>
+          <div class="stat-hint">指导中 2 · 评审中 3</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">待审阅任务</div>
+          <span class="panel-count">2</span>
+        </div>
+        <div class="todo-item">
+          <div class="todo-dot" style="background:#2563eb"></div>
+          <div class="todo-body">
+            <div class="todo-title">待审阅 · 《强化学习在机器人路径规划中的应用研究》</div>
+            <div class="todo-meta">学生：李同学 · 提交于 2026-03-14</div>
+          </div>
+          <button class="todo-cta" onclick="ARGP_MENTOR.openReview('PROJ-2026-0087')">立即审阅</button>
+        </div>
+        <div class="todo-item">
+          <div class="todo-dot" style="background:#b45309"></div>
+          <div class="todo-body">
+            <div class="todo-title">待审阅 · 《基于自然语言处理的学术摘要生成》</div>
+            <div class="todo-meta">学生：王同学 · 提交于 2026-03-12</div>
+          </div>
+          <button class="todo-cta" onclick="ARGP_MENTOR.openReview('PROJ-2026-0087')">立即审阅</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd">
+          <div class="panel-title">待审阅项目</div>
+          <a class="panel-ml section-action" onclick="showPage('mentor-list')">进入工作台</a>
+        </div>
+        <div class="todo-item">
+          <div class="todo-body">
+            <div class="todo-title">强化学习在机器人路径规划中的应用研究</div>
+            <div class="todo-meta mono" style="font-size:10.5px;">李同学 · PROJ-2026-0087</div>
+          </div>
+          <span class="badge b-guidance">待审阅</span>
+        </div>
+        <div class="todo-item">
+          <div class="todo-body">
+            <div class="todo-title">基于自然语言处理的学术摘要生成</div>
+            <div class="todo-meta mono" style="font-size:10.5px;">王同学 · PROJ-2026-0071</div>
+          </div>
+          <span class="badge b-guidance">待审阅</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-collapsible">
+      <div class="section-collapsible-hd" onclick="this.parentElement.classList.toggle('open')">
+        <div class="section-title">Agent 智能提醒</div>
+        <span class="section-toggle"></span>
+      </div>
+      <div class="section-collapsible-bd">
+        <div class="agent-grid" style="margin-bottom:0;">
+          <div class="agent-card">
+            <div class="agent-card-hd">
+              <div class="agent-card-dot" style="background:#dc2626"></div>
+              <div class="agent-card-title">风险项目预警</div>
+            </div>
+            <div class="agent-card-desc">李同学《强化学习路径规划》检测到论点一致性风险，建议重点关注第 3 章表述。</div>
+            <div class="agent-card-link" onclick="ARGP_MENTOR.openReview('PROJ-2026-0087')">查看建议</div>
+          </div>
+          <div class="agent-card">
+            <div class="agent-card-hd">
+              <div class="agent-card-dot" style="background:#059669"></div>
+              <div class="agent-card-title">Advisor Agent 审阅建议</div>
+            </div>
+            <div class="agent-card-desc">李同学申请书第 2 章研究目标表述可进一步聚焦，已生成 3 条修改建议供参考。</div>
+            <div class="agent-card-link" onclick="ARGP_MENTOR.openReview('PROJ-2026-0087')">查看建议</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-hd"><div class="section-title">快捷入口</div></div>
+    <div class="quick-row">
+      <div class="quick-card" onclick="showPage('mentor-list')">
+        <div class="quick-ic qic-green">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#059669"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zm-5 9a1 1 0 011-1h8a1 1 0 011 1v1c0 1.657-2.015 3-4.5 3S3 12.657 3 11v-1z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">导师审阅</div>
+          <div class="quick-desc">处理待审阅的学生申请书</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="showPage('proj-list')">
+        <div class="quick-ic qic-blue">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#1677ff"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">项目列表</div>
+          <div class="quick-desc">查看指导学生项目进度</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="window.ARGP_UI&&window.ARGP_UI.openMsgDrawer()">
+        <div class="quick-ic qic-slate">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#475569"><path d="M2 2h12v10H2V2zm2 2v6h8V4H4zm0 2h8v1H4V6zm0 2h5v1H4V8z"/></svg>
+        </div>
+        <div class="quick-text">
+          <div class="quick-title">消息通知</div>
+          <div class="quick-desc">学生提交与流程提醒</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+
+<!-- ══════════════════════════
+     MY PROJECTS (student)
+══════════════════════════ -->
+<div class="page" id="page-my-proj">
+
+  <div style="margin-bottom:18px;">
+    <div class="page-title">我的项目</div>
+    <div class="page-sub" id="my-proj-sub">李同学 · 共 9 项</div>
+  </div>
+
+  <div id="my-proj-reject-banner" style="margin-bottom:12px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius);font-size:13px;color:#991b1b;line-height:1.6;">
+    您有 <strong id="my-proj-reject-count">1</strong> 个项目被<strong>秘书处退件</strong>，请在下方「退件待改」分类中查看退件说明并修改后重提。
+  </div>
+
+  <div class="tabs" data-tab-group="my-proj" id="my-proj-tabs">
+    <div class="tab-item" data-filter="all" onclick="activeTab(this)">所有 (9)</div>
+    <div class="tab-item active" data-filter="rejected" onclick="activeTab(this)">退件待改 (1)</div>
+    <div class="tab-item" data-filter="draft" onclick="activeTab(this)">草稿 (1)</div>
+    <div class="tab-item" data-filter="guidance" onclick="activeTab(this)">指导中 (1)</div>
+    <div class="tab-item" data-filter="submitted" onclick="activeTab(this)">已提交 (3)</div>
+    <div class="tab-item" data-filter="defense" onclick="activeTab(this)">已答辩 (1)</div>
+    <div class="tab-item" data-filter="pub" onclick="activeTab(this)">已公示 (1)</div>
+  </div>
+  <div data-tab-panel="my-proj">
+    <div class="my-proj-list" id="my-proj-list">
+      <div class="my-proj-card" data-tab="failed" role="button" tabindex="0" data-proj-id="PROJ-2026-0078" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0078')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">基于深度学习的医学影像分割研究</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0078</span><span>2026-03-16</span><span class="text-xs text-muted">不予立项</span></div>
+        </div>
+        <span class="my-proj-status st-failed">不予立项</span>
+      </div>
+      <div class="my-proj-card" data-tab="rejected" style="border-left:3px solid #dc2626;" role="button" tabindex="0" data-proj-id="PROJ-2026-0099" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0099')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">边缘计算环境下的任务调度优化</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0099</span><span>2026-03-16</span><span class="text-xs text-muted">秘书处退件 · 请修改后重提</span></div>
+        </div>
+        <span class="my-proj-status st-rejected">秘书处退件</span>
+      </div>
+      <div class="my-proj-card" data-tab="draft" role="button" tabindex="0" data-proj-id="PROJ-2026-0091" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0091')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">知识图谱驱动的科研文献推荐系统</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0091</span><span>2026-03-16</span><span class="text-xs text-muted">撰写中</span></div>
+        </div>
+        <span class="my-proj-status st-draft">草稿</span>
+      </div>
+      <div class="my-proj-card" data-tab="submitted" role="button" tabindex="0" data-proj-id="PROJ-2026-0110" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0110')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">边缘计算下的物联网安全协议研究</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0110</span><span>2026-03-15</span><span class="text-xs text-muted">待导师审核</span></div>
+        </div>
+        <span class="my-proj-status st-submitted">已提交</span>
+      </div>
+      <div class="my-proj-card" data-tab="submitted" role="button" tabindex="0" data-proj-id="PROJ-2026-0041" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0041')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">基于图神经网络的知识推理研究</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0041</span><span>2026-03-15</span><span class="text-xs text-muted">秘书处受理</span></div>
+        </div>
+        <span class="my-proj-status st-submitted">已提交</span>
+      </div>
+      <div class="my-proj-card" data-tab="guidance" role="button" tabindex="0" data-proj-id="PROJ-2026-0087" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0087')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">强化学习在机器人路径规划中的应用研究</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0087</span><span>2026-03-14</span><span class="text-xs text-muted">导师审阅</span></div>
+        </div>
+        <span class="my-proj-status st-guidance">指导中</span>
+      </div>
+      <div class="my-proj-card" data-tab="submitted" role="button" tabindex="0" data-proj-id="PROJ-2026-0063" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0063')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">基于Transformer的中文医学文本理解</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0063</span><span>2026-03-10</span><span class="text-xs text-muted">专家评审</span></div>
+        </div>
+        <span class="my-proj-status st-review">已评审</span>
+      </div>
+      <div class="my-proj-card" data-tab="defense" role="button" tabindex="0" data-proj-id="PROJ-2026-0045" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0045')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">联邦学习框架下的数据隐私保护</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0045</span><span>2026-03-08</span><span class="text-xs text-muted">答辩</span></div>
+        </div>
+        <span class="my-proj-status st-defense">已答辩</span>
+      </div>
+      <div class="my-proj-card" data-tab="pub" role="button" tabindex="0" data-proj-id="PROJ-2026-0029" onclick="ARGP_MOCK&&ARGP_MOCK.openProjectDetail('PROJ-2026-0029')">
+        <div class="my-proj-card-main">
+          <div class="my-proj-card-title">量子计算在密码学中的应用探索</div>
+          <div class="my-proj-card-meta"><span class="mono">PROJ-2026-0029</span><span>2026-03-01</span><span class="text-xs text-muted">公示</span></div>
+        </div>
+        <span class="my-proj-status st-pub">已公示</span>
+      </div>
+    </div>
+    <div class="tab-empty-cell" data-tab-empty style="display:none;padding:24px;text-align:center;color:var(--text-3);font-size:13px;">该分类下暂无项目</div>
+  </div>
+</div><!-- /page-my-proj -->
+
+
+<!-- ══════════════════════════
+     PROJECT PUBLIC (student)
+══════════════════════════ -->
+<div class="page" id="page-proj-pub">
+  <div style="margin-bottom:18px;">
+    <div class="page-title">立项项目公示</div>
+    <div class="page-sub">2026年春季 · 第二批次 · 公示期 2026-03-17 至 2026-03-24</div>
+  </div>
+
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr); margin-bottom:16px;">
+    <div class="stat-card c-blue"><div class="stat-num">38</div><div class="stat-lbl">本批次参评</div></div>
+    <div class="stat-card c-green"><div class="stat-num">33</div><div class="stat-lbl">准予立项</div></div>
+    <div class="stat-card c-teal"><div class="stat-num">87%</div><div class="stat-lbl">整体通过率</div></div>
+    <div class="stat-card c-indigo"><div class="stat-num">7天</div><div class="stat-lbl">公示剩余</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hd">
+      <div class="panel-title">立项结果公开信息</div>
+      <span class="badge b-pub">公示中</span>
+    </div>
+    <p style="padding:0 18px 14px; font-size:13px; color:var(--text-secondary); line-height:1.7; margin:0;">
+      经评审委员会审议，以下项目准予立项。公示期内如对<strong>他人项目立项等级</strong>有异议，请通过消息中心「公示公告」提交<strong>公示异议</strong>；如对<strong>本人项目未通过</strong>有程序性问题异议，请进入对应<strong>项目详情页</strong>提交申诉。
+    </p>
+    <div class="data-table-wrap" style="border:none; border-radius:0; box-shadow:none; margin:0;">
+      <table class="data-table">
+        <thead>
+          <tr><th>项目名称</th><th>申请人</th><th>学院</th><th>立项等级</th><th>综合评分</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><div class="td-name">量子计算在密码学中的应用探索</div><div class="td-id">PROJ-2026-0029</div></td><td>孙杰</td><td>计算机学院</td><td><span class="badge" style="background:#fef3c7;color:#b45309;">国家级</span></td><td><span class="mono text-green">93</span></td></tr>
+          <tr><td><div class="td-name">联邦学习框架下的数据隐私保护</div><div class="td-id">PROJ-2026-0045</div></td><td>陈浩</td><td>计算机学院</td><td><span class="badge b-blue">校级</span></td><td><span class="mono text-green">88</span></td></tr>
+          <tr><td><div class="td-name">基于Transformer的中文医学文本理解</div><div class="td-id">PROJ-2026-0063</div></td><td>王芳</td><td>信息学院</td><td><span class="badge b-blue">校级</span></td><td><span class="mono text-green">91</span></td></tr>
+          <tr><td><div class="td-name">智能合约形式化验证方法</div><div class="td-id">PROJ-2026-0055</div></td><td>黄晨</td><td>软件学院</td><td><span class="badge b-green">院级</span></td><td><span class="mono text-warn">82</span></td></tr>
+          <tr><td><div class="td-name">多模态情感分析系统设计</div><div class="td-id">PROJ-2026-0031</div></td><td>赵磊</td><td>信息学院</td><td><span class="badge b-green">院级</span></td><td><span class="mono text-warn">74</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-card" style="margin-top:16px;">
+    <div class="form-section-title">公示说明</div>
+    <div style="font-size:13px; color:var(--text-secondary); line-height:1.75;">
+      <p style="margin:0 0 10px;">1. 本公示为立项评审结果公开信息，不含未通过评审的项目明细。</p>
+      <p style="margin:0 0 10px;">2. 综合评分为 AI 辅助评审与专家答辩评定的加权结果，仅供参考。</p>
+      <p style="margin:0;">3. 公示截止后，准予立项项目将进入正式执行与中期检查流程。</p>
+    </div>
+  </div>
+</div><!-- /page-proj-pub -->
+
+
+<!-- ══════════════════════════
+     PROJECT LIST
+══════════════════════════ -->
+<div class="page" id="page-proj-list">
+
+  <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:18px;">
+    <div>
+      <div class="page-title">项目列表</div>
+      <div class="page-sub" id="proj-list-sub">2026年春季 · 第二批次 · 共 12 项</div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn btn-sm btn-secondary" type="button" data-roles="secretary" onclick="toggleBatchPanel()">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="margin-right:4px;"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v1H2V3zm0 3h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V6zm3 2v1h6V8H5zm0 2v1h4v-1H5z"/></svg>
+        批次管理
+      </button>
+      <button class="btn btn-primary" data-roles="student" onclick="showPage('proj-new')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        新增申请
+      </button>
+    </div>
+  </div>
+
+  <div class="batch-bar" data-roles="teacher,secretary">
+    <span class="batch-bar-label">申报批次</span>
+    <div class="batch-pills" id="proj-batch-pills"></div>
+  </div>
+
+  <div class="batch-manage-panel" id="batch-manage-panel" data-roles="secretary" style="display:none;">
+    <div class="batch-manage-hd">
+      <div>
+        <div class="batch-manage-title">批次管理</div>
+        <div class="batch-manage-sub">配置申报周期、查看各批次项目与进度</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm btn-secondary" type="button" data-roles="secretary" onclick="showToast('新建批次向导（Demo）','info')">+ 新建批次</button>
+        <button class="btn btn-sm btn-secondary" type="button" onclick="toggleBatchPanel()">收起</button>
+      </div>
+    </div>
+    <div class="batch-manage-body" id="batch-manage-body"></div>
+  </div>
+
+  <div class="tabs" data-tab-group="proj-list" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border);">
+    <div class="tab-item active" data-filter="all" onclick="activeTab(this)">全部 (12)</div>
+    <div class="tab-item" data-filter="draft" onclick="activeTab(this)">草稿 (2)</div>
+    <div class="tab-item" data-filter="guidance" onclick="activeTab(this)">指导中 (3)</div>
+    <div class="tab-item" data-filter="submitted" onclick="activeTab(this)">已提交 (1)</div>
+    <div class="tab-item" data-filter="reviewing" onclick="activeTab(this)">评审中 (4)</div>
+    <div class="tab-item" data-filter="pub" onclick="activeTab(this)">公示中 (1)</div>
+    <div class="tab-item" data-filter="archived" onclick="activeTab(this)">已归档 (1)</div>
+  </div>
+
+  <div class="data-table-wrap" data-tab-panel="proj-list" style="border-top:none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>项目信息</th>
+          <th class="col-applicant" data-roles="teacher,secretary">申请人</th>
+          <th>指导导师</th>
+          <th>状态</th>
+          <th>AI质量分</th>
+          <th>更新时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="proj-list-tbody">
+        <tr data-tab="guidance" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0087">
+          <td>
+            <div class="td-name" onclick="showPage('proj-detail')">强化学习在机器人路径规划中的应用研究</div>
+            <div class="td-id">PROJ-2026-0087</div>
+          </td>
+          <td class="col-applicant" data-roles="teacher,secretary">李明 <span class="text-xs text-muted">研二</span></td>
+          <td>张教授</td>
+          <td><span class="badge b-guidance">指导中</span></td>
+          <td>
+            <span class="mono text-warn" style="font-size:13px; font-weight:500;">82</span>
+            <div class="prog-wrap" style="margin-top:4px; width:64px;"><div class="prog-fill" style="width:82%; background:#b45309;"></div></div>
+          </td>
+          <td class="text-xs text-muted">2026-03-14</td>
+          <td style="display:flex; gap:5px;">
+            <button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button>
+            <button class="btn btn-sm btn-secondary" data-roles="teacher" data-teacher-caps="mentor" onclick="ARGP_MENTOR.openReview('PROJ-2026-0087')">审阅</button>
+          </td>
+        </tr>
+        <tr data-tab="reviewing" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0063">
+          <td>
+            <div class="td-name" onclick="showPage('proj-detail')">基于Transformer的中文医学文本理解</div>
+            <div class="td-id">PROJ-2026-0063</div>
+          </td>
+          <td class="col-applicant" data-roles="teacher,secretary">王芳 <span class="text-xs text-muted">研三</span></td>
+          <td>刘教授</td>
+          <td><span class="badge b-review">评审中</span></td>
+          <td>
+            <span class="mono text-green" style="font-size:13px; font-weight:500;">91</span>
+            <div class="prog-wrap" style="margin-top:4px; width:64px;"><div class="prog-fill" style="width:91%; background:#059669;"></div></div>
+          </td>
+          <td class="text-xs text-muted">2026-03-10</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button></td>
+        </tr>
+        <tr data-tab="reviewing" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0045">
+          <td>
+            <div class="td-name" onclick="showPage('proj-detail')">联邦学习框架下的数据隐私保护</div>
+            <div class="td-id">PROJ-2026-0045</div>
+          </td>
+          <td class="col-applicant" data-roles="teacher,secretary">陈浩 <span class="text-xs text-muted">研三</span></td>
+          <td>王教授</td>
+          <td><span class="badge b-defense">答辩中</span></td>
+          <td>
+            <span class="mono text-green" style="font-size:13px; font-weight:500;">88</span>
+            <div class="prog-wrap" style="margin-top:4px; width:64px;"><div class="prog-fill" style="width:88%; background:#059669;"></div></div>
+          </td>
+          <td class="text-xs text-muted">2026-03-08</td>
+          <td style="display:flex; gap:5px;">
+            <button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button>
+            <button class="btn btn-sm btn-secondary" data-roles="teacher,secretary" onclick="location.href='review.html#defense'">答辩详情</button>
+          </td>
+        </tr>
+        <tr data-tab="submitted" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0031">
+          <td>
+            <div class="td-name" onclick="showPage('proj-detail')">多模态情感分析系统</div>
+            <div class="td-id">PROJ-2026-0031</div>
+          </td>
+          <td class="col-applicant" data-roles="teacher,secretary">赵磊 <span class="text-xs text-muted">研二</span></td>
+          <td>陈教授</td>
+          <td><span class="badge b-submitted">已提交</span></td>
+          <td>
+            <span class="mono text-danger" style="font-size:13px; font-weight:500;">61</span>
+            <div class="prog-wrap" style="margin-top:4px; width:64px;"><div class="prog-fill" style="width:61%; background:#dc2626;"></div></div>
+          </td>
+          <td class="text-xs text-muted">2026-03-12</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button></td>
+        </tr>
+        <tr data-tab="pub" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0029">
+          <td>
+            <div class="td-name" onclick="showPage('proj-detail')">量子计算在密码学中的应用</div>
+            <div class="td-id">PROJ-2026-0029</div>
+          </td>
+          <td class="col-applicant" data-roles="teacher,secretary">孙杰 <span class="text-xs text-muted">研三</span></td>
+          <td>张教授</td>
+          <td><span class="badge b-pub">公示中</span></td>
+          <td>
+            <span class="mono text-green" style="font-size:13px; font-weight:500;">93</span>
+            <div class="prog-wrap" style="margin-top:4px; width:64px;"><div class="prog-fill" style="width:93%; background:#059669;"></div></div>
+          </td>
+          <td class="text-xs text-muted">2026-03-01</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="location.href='review.html#pub-detail'">公示</button></td>
+        </tr>
+        <tr data-tab="draft" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0110">
+          <td><div class="td-name" onclick="showPage('proj-detail')">知识图谱驱动的学术推荐系统</div><div class="td-id">PROJ-2026-0110</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">周航 <span class="text-xs text-muted">研一</span></td>
+          <td>李教授</td>
+          <td><span class="badge b-draft">草稿</span></td>
+          <td><span class="mono text-muted" style="font-size:13px;">—</span></td>
+          <td class="text-xs text-muted">2026-03-15</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button></td>
+        </tr>
+        <tr data-tab="draft" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0108">
+          <td><div class="td-name" onclick="showPage('proj-detail')">边缘计算下的物联网安全协议</div><div class="td-id">PROJ-2026-0108</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">马超 <span class="text-xs text-muted">研二</span></td>
+          <td>王教授</td>
+          <td><span class="badge b-draft">草稿</span></td>
+          <td><span class="mono text-muted" style="font-size:13px;">—</span></td>
+          <td class="text-xs text-muted">2026-03-13</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button></td>
+        </tr>
+        <tr data-tab="guidance" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0095">
+          <td><div class="td-name" onclick="showPage('proj-detail')">基于强化学习的智能调度算法</div><div class="td-id">PROJ-2026-0095</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">韩雪 <span class="text-xs text-muted">研二</span></td>
+          <td>张教授</td>
+          <td><span class="badge b-guidance">指导中</span></td>
+          <td><span class="mono text-warn" style="font-size:13px;font-weight:500;">76</span></td>
+          <td class="text-xs text-muted">2026-03-11</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showPage('proj-detail')">详情</button></td>
+        </tr>
+        <tr data-tab="guidance" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0091">
+          <td><div class="td-name" onclick="showPage('proj-detail')">大语言模型微调与对齐研究</div><div class="td-id">PROJ-2026-0091</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">郑凯 <span class="text-xs text-muted">研三</span></td>
+          <td>刘教授</td>
+          <td><span class="badge b-guidance">指导中</span></td>
+          <td><span class="mono text-green" style="font-size:13px;font-weight:500;">85</span></td>
+          <td class="text-xs text-muted">2026-03-09</td>
+          <td><button class="btn btn-sm btn-secondary">详情</button></td>
+        </tr>
+        <tr data-tab="reviewing" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0031-R">
+          <td><div class="td-name" onclick="showPage('proj-detail')">多模态情感分析系统设计</div><div class="td-id">PROJ-2026-0031</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">赵磊 <span class="text-xs text-muted">研二</span></td>
+          <td>陈教授</td>
+          <td><span class="badge b-review">评审中</span></td>
+          <td><span class="mono text-warn" style="font-size:13px;font-weight:500;">74</span></td>
+          <td class="text-xs text-muted">2026-03-07</td>
+          <td><button class="btn btn-sm btn-secondary">详情</button></td>
+        </tr>
+        <tr data-tab="reviewing" data-batch="batch-2026-spring-2" data-proj-id="PROJ-2026-0055">
+          <td><div class="td-name" onclick="showPage('proj-detail')">智能合约形式化验证方法</div><div class="td-id">PROJ-2026-0055</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">黄晨 <span class="text-xs text-muted">研三</span></td>
+          <td>王教授</td>
+          <td><span class="badge b-review">评审中</span></td>
+          <td><span class="mono text-green" style="font-size:13px;font-weight:500;">88</span></td>
+          <td class="text-xs text-muted">2026-03-06</td>
+          <td><button class="btn btn-sm btn-secondary">详情</button></td>
+        </tr>
+        <tr data-tab="archived" data-batch="batch-2026-fall-1" data-proj-id="PROJ-2026-0156">
+          <td><div class="td-name" onclick="showPage('proj-detail')">知识图谱构建与推理关键技术</div><div class="td-id">PROJ-2026-0156</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">何静 <span class="text-xs text-muted">已毕业</span></td>
+          <td>刘教授</td>
+          <td><span class="badge b-archived">已归档</span></td>
+          <td><span class="mono text-green" style="font-size:13px;font-weight:500;">86</span></td>
+          <td class="text-xs text-muted">2026-11-08</td>
+          <td><button class="btn btn-sm btn-secondary">查看</button></td>
+        </tr>
+        <tr data-tab="pub" data-batch="batch-2026-fall-1" data-proj-id="PROJ-2026-0172">
+          <td><div class="td-name" onclick="showPage('proj-detail')">面向边缘计算的轻量化神经网络</div><div class="td-id">PROJ-2026-0172</div></td>
+          <td class="col-applicant" data-roles="teacher,secretary">宋伟 <span class="text-xs text-muted">已毕业</span></td>
+          <td>王教授</td>
+          <td><span class="badge b-archived">已归档</span></td>
+          <td><span class="mono text-green" style="font-size:13px;font-weight:500;">90</span></td>
+          <td class="text-xs text-muted">2026-12-01</td>
+          <td><button class="btn btn-sm btn-secondary">查看</button></td>
+        </tr>
+        <tr class="tab-empty-row" data-tab-empty style="display:none;"><td colspan="7" class="tab-empty-cell">该分类下暂无项目</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div><!-- /page-proj-list -->
+
+
+<!-- ══════════════════════════
+     NEW APPLICATION
+══════════════════════════ -->
+<div class="page" id="page-proj-new" data-roles="student">
+  <div style="margin-bottom:18px;">
+    <div class="page-title">项目申请</div>
+    <div class="page-sub">撰写申请书 → AI 质量自检 → 提交导师审核</div>
+  </div>
+
+  <!-- Steps -->
+  <div class="step-flow" id="apply-step-flow">
+    <div class="step-item step-clickable" data-step="1" onclick="goApplyStep(1)"><div class="step-circle s-active">1</div><div class="step-lbl s-active">基本信息</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step-item step-clickable" data-step="2" onclick="goApplyStep(2)"><div class="step-circle s-pending">2</div><div class="step-lbl">申请书编辑</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step-item step-clickable" data-step="3" onclick="goApplyStep(3)"><div class="step-circle s-pending">3</div><div class="step-lbl">AI辅助写作</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step-item step-clickable" data-step="4" onclick="goApplyStep(4)"><div class="step-circle s-pending">4</div><div class="step-lbl">附件上传</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step-item step-clickable" data-step="5" onclick="goApplyStep(5)"><div class="step-circle s-pending">5</div><div class="step-lbl">AI 质量自检</div></div>
+    <div class="step-arrow">›</div>
+    <div class="step-item step-clickable" data-step="6" onclick="goApplyStep(6)"><div class="step-circle s-pending">6</div><div class="step-lbl">提交导师审核</div></div>
+  </div>
+
+  <div class="detail-layout">
+    <div>
+      <!-- Basic Info -->
+      <div class="form-card apply-step-section" id="apply-step-basic">
+        <div class="form-section-title">基本信息</div>
+        <div class="form-grid form-grid-2">
+          <div>
+            <label class="form-label">项目名称 <span class="req">*</span></label>
+            <input class="form-input" placeholder="请输入项目名称">
+          </div>
+          <div>
+            <label class="form-label">项目类型 <span class="req">*</span></label>
+            <select class="form-select">
+              <option value="" selected disabled>请选择项目类型</option>
+              <option>国家级大学生创新创业训练计划</option>
+              <option>校级科研项目</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid form-grid-3">
+          <div>
+            <label class="form-label">所属学院</label>
+            <select class="form-select">
+              <option value="" selected disabled>请选择学院</option>
+              <option>计算机科学与技术学院</option>
+              <option>人工智能学院</option>
+              <option>软件学院</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">指导教师 <span class="req">*</span></label>
+            <input class="form-input" placeholder="请输入指导教师姓名">
+          </div>
+          <div>
+            <label class="form-label">预计周期</label>
+            <select class="form-select">
+              <option value="" selected disabled>请选择周期</option>
+              <option>12个月</option>
+              <option>18个月</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div>
+            <label class="form-label">研究方向关键词</label>
+            <input class="form-input" placeholder="多个关键词用逗号分隔">
+          </div>
+          <div>
+            <label class="form-label">申报批次</label>
+            <select class="form-select" id="proj-new-batch-select">
+              <option value="" disabled>请选择申报批次</option>
+              <option value="batch-2026-spring-2" selected>2026年春季 · 第二批次（进行中）</option>
+              <option value="batch-2026-spring-3">2026年春季 · 第三批次（筹备中）</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Application Content -->
+      <div class="form-card apply-step-section" id="apply-step-edit">
+        <div class="form-section-title">申请书正文</div>
+        <div class="form-grid form-grid-1" style="margin-bottom:12px;">
+          <div>
+            <label class="form-label">研究背景与意义 <span class="req">*</span></label>
+            <textarea class="form-textarea" id="apply-text-bg" style="min-height:100px;" placeholder="请阐述研究背景、意义及国内外研究现状…"></textarea>
+            <div class="ai-assist-bar">
+              <span class="ai-assist-label">Academic Agent · AI辅助写作</span>
+              <div class="ai-assist-btns">
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('bg','optimize')">优化表达</button>
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('bg','cite')">补充引用</button>
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('bg','logic')">逻辑检查</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid form-grid-1" style="margin-bottom:12px;">
+          <div>
+            <label class="form-label">研究目标与内容 <span class="req">*</span></label>
+            <textarea class="form-textarea" id="apply-text-goal" placeholder="请描述研究目标、主要内容与技术路线…"></textarea>
+            <div class="ai-assist-bar">
+              <span class="ai-assist-label">Academic Agent · AI辅助写作</span>
+              <div class="ai-assist-btns">
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('goal','optimize')">优化表达</button>
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('goal','cite')">补充引用</button>
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('goal','logic')">逻辑检查</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid form-grid-1">
+          <div>
+            <label class="form-label">创新点与预期成果 <span class="req">*</span></label>
+            <textarea class="form-textarea" id="apply-text-innov" placeholder="请说明创新点及预期成果…"></textarea>
+            <div class="ai-assist-bar">
+              <span class="ai-assist-label">Academic Agent · AI辅助写作</span>
+              <div class="ai-assist-btns">
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('innov','optimize')">优化表达</button>
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('innov','cite')">补充引用</button>
+                <button class="aab" type="button" onclick="event.stopPropagation();ARGP_AI.runApplyWritingAction('innov','logic')">逻辑检查</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachments -->
+      <div class="form-card apply-step-section" id="apply-step-attach">
+        <div class="form-section-title">附件上传</div>
+        <div class="upload-zone" onclick="showToast('Demo 模式不支持实际上传','info')">
+          <div class="upload-title">点击或拖拽文件到此处上传</div>
+          <div class="upload-hint">支持 PDF、Word、Excel、图片，单文件不超过 50MB</div>
+        </div>
+        <div id="proj-new-files"></div>
+      </div>
+
+      <div class="btn-group apply-step-section" id="apply-step-submit">
+        <button class="btn btn-ghost" type="button" onclick="showToast('草稿已保存','success')">保存草稿</button>
+        <button class="btn btn-secondary" onclick="showPage('my-proj')">返回我的项目</button>
+        <button class="btn btn-primary" type="button" onclick="runAiCheck()">进行 AI 质量自检</button>
+      </div>
+    </div>
+
+    <!-- Side -->
+    <div>
+      <div class="meta-card">
+        <div class="meta-title">申请书进度</div>
+        <div class="meta-row"><span class="meta-k">完整度</span><span class="meta-v text-muted">—</span></div>
+        <div class="meta-row"><span class="meta-k">字数</span><span class="meta-v mono">0</span></div>
+        <div class="meta-row"><span class="meta-k">必填完成</span><span class="meta-v">0 / 6 项</span></div>
+        <div class="meta-row"><span class="meta-k">附件</span><span class="meta-v">0 个文件</span></div>
+        <div class="meta-row"><span class="meta-k">最后保存</span><span class="meta-v text-xs text-muted">未保存</span></div>
+      </div>
+      <div class="apply-step-section" id="apply-step-ai">
+        <div class="ai-suggest-panel" id="apply-ai-suggest-panel"></div>
+      </div>
+      <div class="meta-card apply-step-section" id="apply-step-check">
+        <div class="meta-title">AI 实时检测
+          <span style="margin-left:auto; font-size:10px; color:var(--text-3); font-family:'DM Mono',monospace;">仅供参考</span>
+        </div>
+        <div style="padding:12px 0; font-size:12.5px; color:var(--text-3); text-align:center;">
+          填写申请书后将实时显示 AI 检测建议
+        </div>
+        <button class="btn btn-sm btn-secondary" type="button" style="width:100%;" onclick="runAiCheck()">立即自检</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-proj-new -->
+
+
+<!-- ══════════════════════════
+     AI QUALITY CHECK（独立页 · 项目申请流程）
+══════════════════════════ -->
+<div class="page" id="page-ai-check" data-roles="student">
+  <div id="ai-check-root"></div>
+</div><!-- /page-ai-check -->
+
+
+<!-- ══════════════════════════
+     SUBMIT SUCCESS
+══════════════════════════ -->
+<div class="page" id="page-submit-success" data-roles="student">
+  <div id="submit-success-root"></div>
+</div><!-- /page-submit-success -->
+
+
+<!-- ══════════════════════════
+     AI ASSISTANT HUB（学生）
+══════════════════════════ -->
+<div class="page" id="page-ai-assistant" data-roles="student">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div class="page-title">AI 助手</div>
+      <div class="page-sub">Academic Agent · 辅助写作 · 质量检测 · 答辩助手 · AI 生成 · 仅供参考</div>
+    </div>
+    <div style="min-width:280px;">
+      <label class="form-label">当前项目</label>
+      <select class="form-select" id="ai-proj-select" onchange="ARGP_AI.onProjectChange(this.value)"></select>
+    </div>
+  </div>
+
+  <div class="tabs ai-hub-tabs" id="ai-hub-tabs">
+    <div class="tab-item active" data-ai-tab="writing" onclick="setAiTab(this,'writing')">辅助写作</div>
+    <div class="tab-item" data-ai-tab="quality" onclick="setAiTab(this,'quality')">质量检测</div>
+    <div class="tab-item" data-ai-tab="defense" onclick="setAiTab(this,'defense')">答辩助手</div>
+  </div>
+
+  <div id="ai-tab-writing" class="ai-tab-panel"></div>
+  <div id="ai-tab-quality" class="ai-tab-panel" style="display:none;"></div>
+  <div id="ai-tab-defense" class="ai-tab-panel" style="display:none;"></div>
+</div><!-- /page-ai-assistant -->
+
+<!-- ══════════════════════════
+     PROJECT DETAIL
+══════════════════════════ -->
+<div class="page" id="page-proj-detail" data-roles="student">
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px;">
+    <div>
+      <div class="page-title" id="proj-detail-title">强化学习在机器人路径规划中的应用研究</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+        <span class="mono text-xs text-muted" id="proj-detail-id">PROJ-2026-0087</span>
+        <span class="my-proj-status st-guidance" id="proj-detail-status">指导中</span>
+      </div>
+    </div>
+    <div id="proj-detail-pre-actions" style="display:flex; gap:8px; flex-shrink:0;">
+      <button class="btn btn-sm btn-primary role-hidden" id="proj-detail-btn-edit" type="button" onclick="showPage('proj-new')">继续编辑</button>
+      <button class="btn btn-sm btn-secondary role-hidden" id="proj-detail-btn-ai" type="button" onclick="openAiAssistant('quality', null, true)">查看 AI 报告</button>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+    <div>
+      <div class="tabs" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border);">
+        <div class="tab-item active" onclick="setTab(this,'dt-overview')">项目概览</div>
+        <div class="tab-item" onclick="setTab(this,'dt-material')">申请材料</div>
+        <div class="tab-item" onclick="setTab(this,'dt-attach')">附件材料</div>
+        <div class="tab-item" onclick="setTab(this,'dt-result')">成果记录</div>
+        <div class="tab-item" onclick="setTab(this,'dt-version')">版本管理</div>
+      </div>
+
+      <div id="dt-overview" class="form-card" style="border-top:none; border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+        <div class="form-grid form-grid-2">
+          <div><div class="form-label">项目类型</div><div style="margin-top:3px; font-size:13px;">国家级大学生创新创业训练计划</div></div>
+          <div><div class="form-label">申报批次</div><div style="margin-top:3px; font-size:13px;">2026年春季 · 第二批次</div></div>
+          <div><div class="form-label">申请人</div><div style="margin-top:3px; font-size:13px;">李明（研究生二年级）</div></div>
+          <div><div class="form-label">指导导师</div><div style="margin-top:3px; font-size:13px;">张明远 教授 · 计算机学院</div></div>
+        </div>
+        <div id="proj-detail-ai-banner" class="role-hidden" style="margin-top:12px; background:var(--warn-bg); border-radius:var(--radius); padding:10px 12px; border-left:3px solid #b45309; font-size:12.5px; color:#78350f; line-height:1.6;">
+          <strong>AI 质量自检（提交导师前）</strong>：综合得分 <span id="proj-detail-ai-score">82</span> 分（黄色预警）。识别到 1 处逻辑矛盾、1 处引用格式问题。重复率 4.2%，通过学术诚信检测。
+          <span style="color:var(--text-3); font-size:11px; font-family:'DM Mono',monospace; margin-left:6px;">AI 生成 · 仅供参考</span>
+          <div style="margin-top:8px;"><button class="btn btn-sm btn-secondary" type="button" onclick="openAiAssistant('quality', null, true)">查看完整 AI 报告</button></div>
+        </div>
+        <div id="proj-detail-guidance-note" style="margin-top:12px; background:#f5f5f5; border-radius:var(--radius); padding:10px 12px; border-left:3px solid #d9d9d9; font-size:12.5px; color:var(--text-secondary); line-height:1.6;">
+          本项目已进入导师指导环节，申请材料已锁定。如需修改请联系指导导师。
+        </div>
+      </div>
+
+      <div id="dt-material" style="display:none;">
+        <div class="doc-viewer" style="border-top:none; border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+          <div class="doc-viewer-toolbar">
+            <div class="doc-viewer-title">申请书正文 · 强化学习在机器人路径规划中的应用研究</div>
+            <span style="font-size:10.5px; color:var(--text-3); font-family:'DM Mono',monospace;">v3 · 2026-03-14</span>
+          </div>
+          <div class="doc-body">
+            <h3>一、研究背景与意义</h3>
+            <p>近年来，随着深度强化学习技术的快速发展，智能机器人在复杂动态环境中的自主导航能力得到了显著提升。<span class="hl-yellow">传统路径规划算法在静态已知地图上表现良好，但在动态障碍物频繁出现的真实场景中存在明显局限性</span>。</p>
+            <div class="annotation a-blue">导师批注：请在此处补充具体的定量数据支撑"局限性"的说法，避免主观判断</div>
+            <h3>二、研究目标与内容</h3>
+            <p>本项目研究目标为：（1）构建基于近端策略优化（PPO）的机器人路径规划框架；（2）设计融合环境感知的奖励函数体系；（3）在ROS仿真环境及真实机器人平台上验证方法有效性。</p>
+            <h3>三、研究假设</h3>
+            <p><span class="hl-red">H2：现有深度强化学习方法无法有效处理动态障碍物避障问题</span>，需要本研究提出的新型课程学习策略。</p>
+            <div class="annotation">AI检测：此处假设H2与第一章第2段中"现有方法表现优秀"存在逻辑矛盾，建议统一立场
+              <span style="font-size:10px; color:var(--text-3); font-family:'DM Mono',monospace; margin-left:4px;">AI 生成 · 仅供参考</span>
+            </div>
+            <div class="annotation a-red">导师批注：与绪论第2段矛盾！绪论说"表现优秀"，这里说"无法处理"——请修改，统一表述</div>
+            <h3>四、创新点</h3>
+            <p>创新点：提出多目标奖励函数动态平衡机制；设计课程学习驱动的分阶段训练策略。预期成果：发表EI/SCI论文1篇；开源路径规划工具包。</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="dt-attach" style="display:none;" class="form-card" style="border-top:none;">
+        <div class="file-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="#dc2626"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1zm5 0v4h4"/></svg>
+          <span class="file-name">开题报告初稿_v2.pdf</span>
+          <span class="file-size">2.4 MB</span>
+          <span style="margin-left:auto; font-size:11px; color:var(--text-3);">2026-03-14</span>
+          <button class="btn btn-sm btn-secondary">下载</button>
+        </div>
+        <div class="file-item" style="margin-top:6px;">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="#059669"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1zm5 0v4h4"/></svg>
+          <span class="file-name">实验方案与预期数据.xlsx</span>
+          <span class="file-size">0.8 MB</span>
+          <span style="margin-left:auto; font-size:11px; color:var(--text-3);">2026-03-14</span>
+          <button class="btn btn-sm btn-secondary">下载</button>
+        </div>
+      </div>
+
+      <div id="dt-result" style="display:none;" class="form-card">
+        <div style="font-size:13px; color:var(--text-2); text-align:center; padding:28px 0;">暂无成果记录，项目完成后将在此展示论文、专利、获奖等成果信息</div>
+      </div>
+
+      <div id="dt-version" style="display:none;" class="form-card">
+        <div id="version-list-view">
+          <div class="form-section-title" style="margin-bottom:12px;">版本历史</div>
+          <div id="version-list-container">
+            <div class="version-item">
+              <span class="version-tag">v3</span>
+              <div class="v-info"><div class="v-note">修复逻辑矛盾问题，更新第三章假设表述</div><div class="v-meta">2026-03-14 09:45 · 李明</div></div>
+              <div class="v-status-group"><span class="version-status-pill is-current">当前版本</span><span class="version-status-pill is-locked">已锁定</span></div>
+              <div class="v-actions"><button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_MOCK.openVersionDetail('v3')">查看详情</button></div>
+            </div>
+            <div class="version-item">
+              <span class="version-tag">v2</span>
+              <div class="v-info"><div class="v-note">补充创新点说明，修改参考文献格式</div><div class="v-meta">2026-03-12 16:20 · 李明</div></div>
+              <div class="v-status-group"><span class="version-status-pill is-history">历史版本</span></div>
+              <div class="v-actions">
+                <button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_MOCK.openVersionDetail('v2')">查看详情</button>
+                <button class="btn btn-sm btn-ghost" type="button" onclick="showToast('版本对比功能（Demo）','info')">对比</button>
+                <button class="btn btn-sm btn-ghost" type="button" onclick="showToast('已恢复至 v2（Demo）','success')">恢复此版本</button>
+              </div>
+            </div>
+            <div class="version-item">
+              <span class="version-tag">v1</span>
+              <div class="v-info"><div class="v-note">初稿提交</div><div class="v-meta">2026-03-10 11:00 · 李明</div></div>
+              <div class="v-status-group"><span class="version-status-pill is-history">历史版本</span></div>
+              <div class="v-actions">
+                <button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_MOCK.openVersionDetail('v1')">查看详情</button>
+                <button class="btn btn-sm btn-ghost" type="button" onclick="showToast('版本对比功能（Demo）','info')">对比</button>
+                <button class="btn btn-sm btn-ghost" type="button" onclick="showToast('已恢复至 v1（Demo）','success')">恢复此版本</button>
+              </div>
+            </div>
+          </div>
+          <div class="sample-paper-section">
+            <div class="form-section-title" style="margin-bottom:12px;">参考示例论文</div>
+            <p class="text-xs text-muted" style="margin-bottom:12px;line-height:1.6;">以下为学院提供的优秀申请书与同学科参考论文，仅供撰写格式与结构参考，不可直接引用。</p>
+            <div id="sample-paper-list">
+              <div class="sample-paper-item">
+                <div class="sample-paper-icon">DOC</div>
+                <div class="sample-paper-body">
+                  <div class="sample-paper-title">2026年国创优秀项目申请书范例 · 强化学习方向</div>
+                  <div class="sample-paper-desc">含完整章节结构、创新点表述与参考文献格式示范，适合国创计划申报参考。</div>
+                  <div class="sample-paper-meta">计算机学院 · 匿名范例 · PDF 28页</div>
+                </div>
+                <div class="sample-paper-actions">
+                  <span class="sample-type-tag">范例申请书</span>
+                  <button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_MOCK.openSamplePaper('sample-app-rl')">查看详情</button>
+                </div>
+              </div>
+              <div class="sample-paper-item">
+                <div class="sample-paper-icon">PDF</div>
+                <div class="sample-paper-body">
+                  <div class="sample-paper-title">Deep Reinforcement Learning for Mobile Robot Navigation: A Survey</div>
+                  <div class="sample-paper-desc">机器人路径规划领域综述论文，可作为研究现状与创新点对比的参考文献示范。</div>
+                  <div class="sample-paper-meta">IEEE T-RO · 2023 · 引用格式示范</div>
+                </div>
+                <div class="sample-paper-actions">
+                  <span class="sample-type-tag">参考论文</span>
+                  <button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_MOCK.openSamplePaper('sample-paper-rl')">查看详情</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="version-detail-view" style="display:none;">
+          <div class="version-detail-hd">
+            <span class="back-btn" onclick="closeVersionDetail()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M11 2L5 8l6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              返回版本列表
+            </span>
+            <div class="v-status-group" id="version-detail-badges"></div>
+          </div>
+          <div class="doc-viewer">
+            <div class="doc-viewer-toolbar">
+              <div class="doc-viewer-title" id="version-detail-title">—</div>
+              <span class="text-xs text-muted mono" id="version-detail-meta">—</span>
+            </div>
+            <div class="doc-body" id="version-detail-body"></div>
+          </div>
+          <div class="btn-group" id="version-detail-actions" style="margin-top:14px;border-top:1px solid var(--border-2);padding-top:14px;"></div>
+        </div>
+        <div id="version-diff-view" style="display:none;">
+          <div class="version-detail-hd">
+            <span class="back-btn" onclick="closeVersionCompare()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M11 2L5 8l6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              返回
+            </span>
+            <div class="v-status-group" id="version-diff-badges"></div>
+          </div>
+          <div id="version-diff-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="meta-card">
+        <div class="meta-title">项目进度</div>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot tl-done"></div><div class="tl-title">草稿阶段</div><div class="tl-time">2026-03-10</div><div class="tl-desc">完成初稿，AI自检通过</div></div>
+          <div class="tl-item"><div class="tl-dot tl-active"></div><div class="tl-title">导师指导中</div><div class="tl-time">2026-03-14 · 进行中</div><div class="tl-desc">等待导师张明远审阅批注</div></div>
+          <div class="tl-item"><div class="tl-dot tl-pending"></div><div class="tl-title">提交受理</div><div class="tl-time">待完成</div></div>
+          <div class="tl-item"><div class="tl-dot tl-pending"></div><div class="tl-title">专家评审</div><div class="tl-time">待完成</div></div>
+          <div class="tl-item"><div class="tl-dot tl-pending"></div><div class="tl-title">答辩评审</div><div class="tl-time">待完成</div></div>
+        </div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-title">项目信息</div>
+        <div class="meta-row"><span class="meta-k">申请类型</span><span class="meta-v text-xs">国创计划</span></div>
+        <div class="meta-row"><span class="meta-k">申请人</span><span class="meta-v">李明</span></div>
+        <div class="meta-row"><span class="meta-k">导师</span><span class="meta-v">张明远</span></div>
+        <div class="meta-row"><span class="meta-k">提交日期</span><span class="meta-v mono text-xs">2026-03-14</span></div>
+        <div class="meta-row"><span class="meta-k">当前版本</span><span class="meta-v mono">v3</span></div>
+      </div>
+      <div id="proj-detail-appeal-slot" class="meta-card role-hidden" style="padding:10px 14px;font-size:12px;line-height:1.65;color:var(--text-secondary);background:var(--bg-2);border-style:dashed;"></div>
+    </div>
+  </div>
+</div><!-- /page-proj-detail -->
+
+
+<!-- ══════════════════════════
+     REVIEW RESULT APPEAL (student)
+══════════════════════════ -->
+<div class="page" id="page-proj-appeal" data-roles="student"></div>
+
+
+<!-- ══════════════════════════
+     MENTOR LIST
+══════════════════════════ -->
+<div class="page" id="page-mentor-list">
+  <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:18px;">
+    <div>
+      <div class="page-title">导师工作台</div>
+      <div class="page-sub" id="mentor-desk-sub">张明远 教授 · 共指导 8 个项目</div>
+    </div>
+  </div>
+
+  <div class="stats-row" style="grid-template-columns:repeat(2,1fr);">
+    <div class="stat-card c-blue"><div class="stat-num" id="mentor-stat-pending">2</div><div class="stat-lbl">待审核申请</div><div class="stat-hint">最新：李明 · 今天提交</div></div>
+    <div class="stat-card c-teal"><div class="stat-num" id="mentor-stat-total">8</div><div class="stat-lbl">本学期指导项目</div><div class="stat-hint">国创 3 · 校级 5</div></div>
+  </div>
+
+  <div class="tabs" id="mentor-desk-tabs" data-tab-group="mentor-desk"></div>
+
+  <div class="data-table-wrap" data-tab-panel="mentor-desk">
+    <table class="data-table">
+      <thead>
+        <tr><th>项目信息</th><th>学生</th><th>状态</th><th>AI自检分</th><th>AI关键问题</th><th>提交时间</th><th>操作</th></tr>
+      </thead>
+      <tbody id="mentor-desk-tbody"></tbody>
+    </table>
+  </div>
+</div><!-- /page-mentor-list -->
+
+
+<!-- ══════════════════════════
+     MENTOR REVIEW
+══════════════════════════ -->
+<div class="page" id="page-mentor-review">
+  <div style="margin-bottom:18px;">
+    <div class="page-title" id="mentor-review-title">导师审阅工作台</div>
+    <div style="display:flex; gap:8px; margin-top:5px; align-items:center;">
+      <span class="mono text-xs text-muted" id="mentor-review-id">PROJ-2026-0087</span>
+      <span class="badge b-guidance" id="mentor-review-badge">待审核</span>
+    </div>
+  </div>
+
+  <div class="mentor-review-layout">
+    <!-- 左栏：申请书全文 -->
+    <div class="mentor-doc-col">
+      <div class="doc-viewer">
+        <div class="doc-viewer-toolbar">
+          <div class="doc-viewer-title">申请书正文</div>
+          <div class="mentor-ver-switch" id="mentor-version-switch"></div>
+          <button class="btn btn-sm btn-secondary" type="button" id="mentor-btn-annot" onclick="ARGP_MENTOR.toggleAnnotMode()">添加批注</button>
+        </div>
+        <div class="doc-body" id="mentor-doc-body"></div>
+      </div>
+
+      <div class="form-card" style="margin-top:14px;">
+        <div class="form-section-title">审核意见</div>
+        <div class="form-grid form-grid-1" style="margin-bottom:12px;">
+          <div>
+            <label class="form-label">整体评价</label>
+            <select class="form-select" id="mentor-opinion-select">
+              <option>建议修改后重新提交</option>
+              <option>同意通过</option>
+              <option>不同意，退回</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid form-grid-1" style="margin-bottom:16px;">
+          <div>
+            <label class="form-label">详细意见</label>
+            <textarea class="form-textarea" id="mentor-opinion-text" style="min-height:110px;" oninput="this.dataset.touched='1'"></textarea>
+          </div>
+        </div>
+        <div id="mentor-sign-area" style="border:1.5px dashed var(--border); border-radius:var(--radius); padding:16px; text-align:center; margin-bottom:14px; background:var(--bg);">
+          <div style="font-size:13px; color:var(--text-2);">导师电子签字确认</div>
+          <div style="font-size:11.5px; color:var(--text-3); margin-top:3px;">审核通过前须先完成电子签名</div>
+          <button class="btn btn-success" type="button" style="margin-top:10px; padding:6px 16px; font-size:13px;" onclick="ARGP_MENTOR.openSignConfirm()">点击电子签字</button>
+        </div>
+        <div class="btn-group" id="mentor-review-actions" style="border-top:none;padding-top:0;margin-top:0;">
+          <button class="btn btn-ghost" type="button" onclick="showToast('审阅意见已暂存','success')">暂存</button>
+          <button class="btn btn-secondary" type="button" title="退回至学生修改，仍须导师再审通过" onclick="rejectToStudent()">退回修改</button>
+          <button class="btn btn-success" type="button" id="mentor-btn-approve" onclick="ARGP_MENTOR.requestApprove()">审核通过</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右栏：AI 辅助面板 -->
+    <div class="mentor-ai-panel">
+      <div class="meta-card">
+        <div class="meta-title">项目信息</div>
+        <div id="mentor-meta-panel"></div>
+      </div>
+
+      <div class="ai-block">
+        <div class="ai-block-hd">
+          <div class="ai-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="white"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a1 1 0 00-1 1v2.586l-1.707 1.707a1 1 0 001.414 1.414L8.707 9.707A1 1 0 009 9V6a1 1 0 00-1-1z"/></svg></div>
+          <div class="ai-block-title">Advisor Agent · 导师版摘要</div>
+          <span class="ai-tag">AI 生成 · 仅供参考</span>
+        </div>
+        <div class="mentor-advisor-stack" id="mentor-advisor-summary"></div>
+      </div>
+
+      <div class="meta-card">
+        <div class="meta-title">AI 自检报告摘要
+          <span style="margin-left:auto;font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;font-weight:400;">仅供参考</span>
+        </div>
+        <p class="text-xs" id="mentor-ai-check-summary" style="line-height:1.7;color:var(--text-2);margin:0;"></p>
+        <button class="btn btn-sm btn-secondary" type="button" style="width:100%;margin-top:10px;" onclick="showToast('完整 AI 报告（Demo）','info')">查看完整报告</button>
+      </div>
+
+      <button type="button" class="heritage-entry-btn" onclick="ARGP_MENTOR.openHeritageModal()">
+        <div class="heritage-entry-title">传承分析</div>
+        <div class="heritage-entry-desc">查看三色标注报告：橙色传承自导师论文 · 蓝色引入外部文献 · 绿色原创观点</div>
+      </button>
+    </div>
+  </div>
+</div><!-- /page-mentor-review -->
+
+<!-- 传承分析弹窗 -->
+<div class="heritage-modal-overlay" id="heritage-modal" role="dialog" aria-modal="true" aria-label="传承分析报告">
+  <div class="heritage-modal-box">
+    <div id="heritage-modal-body"></div>
+  </div>
+</div>
+
+<!-- 电子签字确认弹窗 -->
+<div class="sign-confirm-overlay" id="sign-confirm-modal" role="dialog" aria-modal="true" aria-label="电子签字确认">
+  <div class="sign-confirm-box">
+    <div class="sign-confirm-title">电子签字确认</div>
+    <div class="sign-confirm-warn">签字即表示材料质量已达到提交受理的标准</div>
+    <p class="sign-confirm-desc">确认后，您的电子签字将与审阅意见一并记录。完成签名后，方可点击「审核通过」提交至秘书处受理流程。</p>
+    <div class="sign-confirm-actions">
+      <button class="btn btn-secondary" type="button" onclick="ARGP_MENTOR.closeSignConfirm()">取消</button>
+      <button class="btn btn-success" type="button" onclick="ARGP_MENTOR.confirmSign()">确认签字</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核通过 · 确认提交弹窗 -->
+<div class="sign-confirm-overlay" id="approve-submit-modal" role="dialog" aria-modal="true" aria-label="审核通过确认">
+  <div class="sign-confirm-box">
+    <div class="sign-confirm-title">审核通过 · 确认提交须知</div>
+    <div class="sign-confirm-warn">请确认您已完成批注与意见填写，提交后不可撤回导师审核结论</div>
+    <ul class="sign-confirm-notice">
+      <li>材料将进入<strong>秘书处受理队列</strong>，学生端将收到审阅意见与签字确认推送</li>
+      <li>秘书处受理通过后，项目进入<strong>专家评审</strong>流程</li>
+      <li>评审与答辩阶段材料原则上不可再修改，请确保当前版本为最终提交版</li>
+      <li>若需学生修改，请使用「退回修改」而非审核通过</li>
+    </ul>
+    <div class="sign-confirm-actions">
+      <button class="btn btn-secondary" type="button" onclick="ARGP_MENTOR.closeApproveConfirm()">取消</button>
+      <button class="btn btn-success" type="button" onclick="ARGP_MENTOR.confirmApprove()">确认提交</button>
+    </div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+</div><!-- /app-body -->
+
+<script src="argp-mock-messages.js"></script>
+<script src="argp-ui.js"></script>
+<script src="argp-breadcrumb.js"></script>
+<script src="argp-auth.js"></script>
+<script src="argp-mock-data.js?v=20260613"></script>
+<script src="argp-mock-appeal.js?v=20260613"></script>
+<script src="argp-mock-ai.js"></script>
+<script src="argp-mock-mentor.js"></script>
+<script src="argp-mock-batches.js"></script>
+<script>
+function resolvePageForRole(id) {
+  var role = window.ARGP_AUTH && window.ARGP_AUTH.getRole();
+  if (id === 'proj-list' && role === 'student') return 'my-proj';
+  return id;
+}
+
+function nav(el, id) {
+  id = resolvePageForRole(id);
+  if (id === 'my-proj' && window.ARGP_AUTH && window.ARGP_AUTH.getRole() === 'student') {
+    el = document.querySelector('.nav-item[data-nav="my-proj"]');
+  }
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  showPage(id);
+}
+
+function showPage(id) {
+  id = resolvePageForRole(id);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const t = document.getElementById('page-' + id);
+  if (t) t.classList.add('active');
+  if (typeof updateBreadcrumb === 'function') updateBreadcrumb(id);
+  if (id === 'my-proj' && window.ARGP_MOCK) {
+    window.ARGP_MOCK.initStudentProjects();
+    if (window.ARGP_MOCK.activateRejectedTabIfNeeded) {
+      window.ARGP_MOCK.activateRejectedTabIfNeeded();
+    }
+  }
+  if (id === 'proj-detail' && window.ARGP_MOCK) {
+    if (window.ARGP_MOCK.applyProjDetailView) window.ARGP_MOCK.applyProjDetailView();
+    resetProjDetailTabs();
+  }
+  if (id === 'proj-appeal' && window.ARGP_APPEAL) {
+    window.ARGP_APPEAL.renderAppealPage();
+  }
+  if (id === 'proj-list' && window.ARGP_BATCHES) {
+    window.ARGP_BATCHES.renderBatchBar();
+    window.ARGP_BATCHES.applyProjListFilter();
+  }
+  if (id === 'proj-new') {
+    setTimeout(function() {
+      goApplyStep(1, true);
+      if (window.ARGP_AI) window.ARGP_AI.initApplyPage();
+    }, 50);
+  }
+  if (id === 'ai-check' && window.ARGP_AI) {
+    window.ARGP_AI.renderAiCheckPage();
+  }
+  if (id === 'submit-success' && window.ARGP_AI) {
+    window.ARGP_AI.renderSubmitSuccessPage();
+  }
+  if (id === 'ai-assistant' && window.ARGP_AI) {
+    window.ARGP_AI.render();
+  }
+  if (id === 'mentor-list' && window.ARGP_MENTOR) {
+    window.ARGP_MENTOR.renderMentorList();
+  }
+  if (id === 'mentor-review' && window.ARGP_MENTOR) {
+    window.ARGP_MENTOR.initMentorAnnotEvents();
+    window.ARGP_MENTOR.renderMentorReview();
+  }
+  window.scrollTo(0,0);
+}
+
+function openAiAssistant(tab, projId, qualityDetail) {
+  if (!projId && window.ARGP_MOCK && window.ARGP_MOCK.getCurrentDetailId) {
+    projId = window.ARGP_MOCK.getCurrentDetailId();
+  }
+  if (!projId && window.ARGP_AI) {
+    projId = window.ARGP_AI.DEFAULT_PROJ;
+  }
+  document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+  var navEl = document.querySelector('.nav-item[data-nav="ai-assistant"]');
+  if (navEl) navEl.classList.add('active');
+  if (window.ARGP_AI) {
+    window.ARGP_AI.openAssistant(tab || 'writing', projId, !!qualityDetail);
+  } else {
+    showPage('ai-assistant');
+  }
+}
+
+function setAiTab(el, tab) {
+  if (window.ARGP_AI) {
+    window.ARGP_AI.render({ tab: tab, qualityDetail: false });
+  }
+  if (el && el.closest('#ai-hub-tabs')) {
+    el.closest('#ai-hub-tabs').querySelectorAll('.tab-item').forEach(function (t) {
+      t.classList.toggle('active', t === el);
+    });
+  }
+}
+
+var APPLY_STEP_IDS = ['apply-step-basic','apply-step-edit','apply-step-ai','apply-step-attach','apply-step-check','apply-step-submit'];
+
+function updateApplySteps(active) {
+  document.querySelectorAll('#apply-step-flow .step-item[data-step]').forEach(function (item) {
+    var step = parseInt(item.getAttribute('data-step'), 10);
+    var circle = item.querySelector('.step-circle');
+    var lbl = item.querySelector('.step-lbl');
+    if (!circle || !lbl) return;
+    if (step < active) {
+      circle.className = 'step-circle s-done';
+      circle.textContent = '✓';
+      lbl.classList.remove('s-active');
+    } else if (step === active) {
+      circle.className = 'step-circle s-active';
+      circle.textContent = String(step);
+      lbl.classList.add('s-active');
+    } else {
+      circle.className = 'step-circle s-pending';
+      circle.textContent = String(step);
+      lbl.classList.remove('s-active');
+    }
+  });
+}
+
+function goApplyStep(n, noFlash) {
+  var id = APPLY_STEP_IDS[n - 1];
+  var el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!noFlash) {
+      el.classList.add('apply-step-flash');
+      setTimeout(function () { el.classList.remove('apply-step-flash'); }, 1400);
+    }
+  }
+  updateApplySteps(n);
+}
+
+function bootArgpIndex() {
+  if (window.initArgpAuth) window.initArgpAuth();
+  if (window.ARGP_MOCK && window.ARGP_MOCK.initStudentProjects &&
+      window.ARGP_AUTH && window.ARGP_AUTH.getRole && window.ARGP_AUTH.getRole() === 'student') {
+    window.ARGP_MOCK.initStudentProjects();
+  }
+  var hash = window.location.hash;
+  var role = window.ARGP_AUTH && window.ARGP_AUTH.getRole();
+  if (hash === '#ai-assistant' && role === 'student') {
+    openAiAssistant('writing');
+    return;
+  }
+  if (hash === '#proj-list' || role === 'secretary') return;
+  if (hash === '#mentor' && role === 'teacher') return;
+  if (role === 'teacher' && window.ARGP_AUTH.getTeacherCap() !== 'mentor') return;
+  updateBreadcrumb('home');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootArgpIndex);
+} else {
+  bootArgpIndex();
+}
+
+function setTab(el, id) {
+  if (id !== 'dt-version' && window.ARGP_MOCK && window.ARGP_MOCK.closeVersionDetail) {
+    window.ARGP_MOCK.closeVersionDetail();
+  }
+  ['dt-overview','dt-material','dt-attach','dt-result','dt-version'].forEach(tid => {
+    const e = document.getElementById(tid);
+    if (e) e.style.display = 'none';
+  });
+  const target = document.getElementById(id);
+  if (target) target.style.display = '';
+  if (el && el.closest) {
+    el.closest('.tabs').querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  if (id === 'dt-version' && window.ARGP_MOCK) {
+    if (window.ARGP_MOCK.closeVersionDetail) window.ARGP_MOCK.closeVersionDetail();
+    if (window.ARGP_MOCK.renderVersionList) window.ARGP_MOCK.renderVersionList();
+  }
+}
+
+function resetProjDetailTabs() {
+  if (window.ARGP_MOCK && window.ARGP_MOCK.closeVersionDetail) {
+    window.ARGP_MOCK.closeVersionDetail();
+  }
+  var tabs = document.querySelector('#page-proj-detail .tabs');
+  var firstTab = tabs ? tabs.querySelector('.tab-item') : null;
+  if (firstTab) {
+    setTab(firstTab, 'dt-overview');
+  }
+}
+
+function closeVersionDetail() {
+  if (window.ARGP_MOCK && window.ARGP_MOCK.closeVersionDetail) {
+    window.ARGP_MOCK.closeVersionDetail();
+  }
+}
+
+function closeVersionCompare() {
+  if (window.ARGP_MOCK && window.ARGP_MOCK.closeVersionCompare) {
+    window.ARGP_MOCK.closeVersionCompare();
+  }
+}
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var wrap = document.getElementById('toast-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'toast-wrap';
+    wrap.className = 'toast-wrap';
+    document.body.appendChild(wrap);
+  }
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() {
+    t.style.opacity = '0';
+    t.style.transition = 'opacity .3s';
+    setTimeout(function() { t.remove(); }, 300);
+  }, 3000);
+}
+
+function runAiCheck() {
+  showToast('Academic Agent 正在全文深度扫描…', 'info');
+  setTimeout(function() {
+    var projId = 'PROJ-2026-0087';
+    if (window.ARGP_AI) {
+      projId = window.ARGP_AI.getApplyProjId ? window.ARGP_AI.getApplyProjId() : window.ARGP_AI.getCurrentProjId();
+      window.ARGP_AI.setCurrentProjId(projId);
+      window.ARGP_AI.resetAiCheckState();
+      window.ARGP_AI.renderAiCheckPage();
+    }
+    showPage('ai-check');
+    showToast('AI 学术质量自检报告已生成', 'success');
+  }, 900);
+}
+
+function updateSubmitBtn() {
+  var cb = document.getElementById('risk-ack');
+  var btn = document.getElementById('btn-submit-mentor');
+  if (cb && btn) btn.disabled = !cb.checked;
+}
+
+function submitToMentor() {
+  var cb = document.getElementById('risk-ack');
+  if (!cb || !cb.checked) {
+    showToast('请先勾选知悉红色风险', 'warn');
+    return;
+  }
+  if (window.ARGP_MOCK && window.ARGP_MOCK.syncAfterSubmitToMentor && window.ARGP_MOCK.getCurrentDetailId) {
+    window.ARGP_MOCK.syncAfterSubmitToMentor(window.ARGP_MOCK.getCurrentDetailId());
+  }
+  showToast('已提交导师审核，Advisor Agent 将推送摘要', 'success');
+  setTimeout(function() { showPage('my-proj'); }, 1200);
+}
+
+function rejectToStudent() {
+  if (window.ARGP_MENTOR && window.ARGP_MENTOR.rejectToStudent) {
+    window.ARGP_MENTOR.rejectToStudent();
+    return;
+  }
+  showToast('已退回学生修改，通知已发送', 'warn');
+  setTimeout(function() { showPage('mentor-list'); }, 1200);
+}
+
+function approveMentor() {
+  if (window.ARGP_MENTOR && window.ARGP_MENTOR.requestApprove) {
+    window.ARGP_MENTOR.requestApprove();
+  }
+}
+</script>
+</body>
+</html>

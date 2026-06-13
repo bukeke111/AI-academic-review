@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跳转中 · AI学术评审与治理平台</title>
+<script src="argp-auth.js"></script>
+<script>
+(function () {
+  if (!sessionStorage.getItem('argp_demo_user')) {
+    window.location.replace('login.html');
+    return;
+  }
+  var hash = window.location.hash;
+  var target = 'review.html';
+  if (hash === '#pub-detail' || hash === '#msg') {
+    target += hash;
+  } else if (hash) {
+    target += hash;
+  } else {
+    var raw;
+    try { raw = JSON.parse(sessionStorage.getItem('argp_demo_user') || '{}'); } catch (e) { raw = {}; }
+    if (raw.role === 'teacher' && raw.teacherCap === 'chair') {
+      target += '#gov-review';
+    }
+  }
+  window.location.replace(target);
+})();
+</script>
+</head>
+<body>
+<p style="font-family:sans-serif;padding:24px;color:#666;">正在跳转…</p>
+</body>
+</html>
