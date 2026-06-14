@@ -139,9 +139,10 @@
       time: '1天前',
       unread: true,
       roles: ['student'],
-      href: '#',
+      href: 'index.html',
       projId: 'PROJ-2026-0078',
-      actionLabel: '查看详情'
+      focusDispute: true,
+      actionLabel: '提交申诉'
     },
     {
       id: 'pub-batch',
@@ -152,8 +153,9 @@
       time: '2天前',
       unread: false,
       roles: ['student', 'teacher', 'secretary'],
-      href: 'review.html#pub-detail',
-      actionLabel: '查看详情'
+      href: 'index.html',
+      actionFn: "showPage('proj-pub')",
+      actionLabel: '查看公示'
     },
     {
       id: 'pub-excellent',
@@ -164,7 +166,9 @@
       time: '5天前',
       unread: false,
       roles: ['student', 'teacher', 'secretary'],
-      href: 'review.html#pub-detail'
+      href: 'index.html',
+      pubProjId: 'PROJ-2026-0029',
+      actionLabel: '查看详情'
     },
     {
       id: 'obj-pending',

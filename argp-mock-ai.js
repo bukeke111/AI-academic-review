@@ -275,6 +275,23 @@
     logic: '逻辑检查'
   };
 
+  var DEFENSE_ELIGIBLE = { draft: 1, guidance: 1, submitted: 1, review: 1, defense: 1 };
+
+  var DEFENSE_PREP_CHECKLIST = [
+    '梳理 15 页以内答辩 PPT 结构（背景 → 方法 → 实验 → 结论）',
+    '对照 AI 质量报告中的黄色/红色风险点准备应答话术',
+    '计时预演陈述，控制在 18–20 分钟内',
+    '准备 1 页「核心创新点 vs 现有工作」对比表',
+    '熟悉申请书关键参考文献与实验数据出处'
+  ];
+
+  var DEFENSE_GENERIC_QUESTIONS = [
+    '请简要说明本项目的核心创新点及与现有工作的差异。',
+    '实验设计如何验证方法的有效性？有无对照组或消融实验？',
+    '研究过程中遇到的主要技术难点是什么，如何解决的？',
+    '预期成果的可考核指标是什么，当前进展如何？'
+  ];
+
   function getProject(id) {
     if (!window.ARGP_MOCK || !window.ARGP_MOCK.STUDENT_PROJECTS) return null;
     var list = window.ARGP_MOCK.STUDENT_PROJECTS;
@@ -324,13 +341,135 @@
     };
   }
 
-  function hasDefenseAssist(proj) {
+  function countSubstantiveSections(projId) {
+    var base = WRITING_ASSIST[projId];
+    if (!base || !base.sections) return 0;
+    var n = 0;
+    base.sections.forEach(function (s) {
+      var t = (s.text || '').trim();
+      if (t.length > 20 && t.indexOf('暂无') === -1 && t.indexOf('撰写中') === -1 &&
+          t.indexOf('待补充') === -1 && t.indexOf('请前往') === -1) {
+        n++;
+      }
+    });
+    return n;
+  }
+
+  function hasWritingMaterials(projId) {
+    return countSubstantiveSections(projId) > 0;
+  }
+
+  function hasDefenseMaterials(proj) {
     if (!proj) return false;
-    return (proj.status === 'review' || proj.status === 'defense') && !!DEFENSE_ASSIST[proj.id];
+    if (hasQualityReport(proj)) return true;
+    if (proj.status === 'draft') return countSubstantiveSections(proj.id) >= 2;
+    return hasWritingMaterials(proj.id);
+  }
+
+  function canUseDefenseAssist(proj) {
+    if (!proj || !DEFENSE_ELIGIBLE[proj.status]) return false;
+    return hasDefenseMaterials(proj);
+  }
+
+  function getDefenseMode(proj) {
+    if (!proj) return null;
+    if ((proj.status === 'review' || proj.status === 'defense') && DEFENSE_ASSIST[proj.id]) {
+      return 'scheduled';
+    }
+    if (canUseDefenseAssist(proj)) return 'prep';
+    return null;
+  }
+
+  function issueToQuestion(iss) {
+    if (!iss || !iss.title) return '';
+    var t = iss.title.replace(/^【[^】]+】/, '').trim();
+    if (/逻辑|矛盾|一致/.test(iss.title)) {
+      return '请说明文中相关表述如何统一，答辩时如何回应逻辑一致性质疑？';
+    }
+    if (/引用|格式/.test(iss.title)) {
+      return '请说明参考文献 [' + (iss.title.match(/\[\d+\]/) || [''])[0].replace(/[\[\]]/g, '') + '] 的引用依据及格式规范处理方式。';
+    }
+    if (/实验|设计/.test(iss.title)) {
+      return '请补充说明实验设计细节：' + t;
+    }
+    if (/创新/.test(iss.title)) {
+      return '请进一步阐述创新点与已有相似研究的差异化边界。';
+    }
+    return '请针对「' + t + '」准备答辩应答要点。';
+  }
+
+  function buildDefenseAssistPrep(projId) {
+    var p = getProject(projId);
+    var report = getQualityReport(projId);
+    var assist = WRITING_ASSIST[projId];
+    var title = p ? p.title : (report ? report.title : '本项目');
+    var innovText = '';
+    if (assist && assist.sections) {
+      assist.sections.forEach(function (s) {
+        if (s.id === 'innov' && s.text) innovText = s.text;
+      });
+    }
+    var summary = report
+      ? report.summary
+      : (assist && assist.sections && assist.sections[0] ? assist.sections[0].text : title + ' 答辩预演摘要。');
+    var innovation = innovText
+      ? innovText.replace(/\n/g, '<br>')
+      : '请结合申请书「创新点与预期成果」章节整理核心亮点。';
+    var reviewHint = report
+      ? 'AI 质量自检综合得分 ' + report.total + ' 分 · ' +
+        (report.yellowCount + report.redCount > 0
+          ? '建议重点准备 ' + (report.yellowCount + report.redCount) + ' 处风险提示的应答'
+          : '整体质量良好，建议突出创新性与实验验证')
+      : '基于当前申请材料生成的预演提示 · 排期后将同步专家评审意见';
+    var questions = [];
+    if (report && report.issues) {
+      report.issues.forEach(function (iss) {
+        if (iss.level === 'yellow' || iss.level === 'red') {
+          var q = issueToQuestion(iss);
+          if (q && questions.indexOf(q) === -1) questions.push(q);
+        }
+      });
+    }
+    DEFENSE_GENERIC_QUESTIONS.forEach(function (q) {
+      if (questions.length >= 5) return;
+      if (questions.indexOf(q) === -1) questions.push(q);
+    });
+    return {
+      mode: 'prep',
+      time: '待秘书处安排',
+      room: '待秘书处安排',
+      duration: '待秘书处安排',
+      summary: summary,
+      innovation: innovation,
+      reviewHint: reviewHint,
+      questions: questions.slice(0, 5),
+      checklist: DEFENSE_PREP_CHECKLIST.slice()
+    };
+  }
+
+  function getDefenseAssistResolved(projId) {
+    var p = getProject(projId);
+    var mode = getDefenseMode(p);
+    if (mode === 'scheduled' && DEFENSE_ASSIST[projId]) {
+      return Object.assign({ mode: 'scheduled' }, DEFENSE_ASSIST[projId]);
+    }
+    if (mode === 'prep') return buildDefenseAssistPrep(projId);
+    return null;
+  }
+
+  function hasDefenseAssist(proj) {
+    return canUseDefenseAssist(proj);
   }
 
   function getDefenseAssist(projId) {
-    return DEFENSE_ASSIST[projId] || null;
+    return getDefenseAssistResolved(projId);
+  }
+
+  function regenerateDefensePrep() {
+    if (typeof showToast === 'function') {
+      showToast('Academic Agent 已重新生成答辩预演问题', 'info');
+    }
+    renderDefenseTab();
   }
 
   function scoreTotalClass(score) {
@@ -825,32 +964,40 @@
       '</div>';
   }
 
-  function renderDefenseTab() {
-    var panel = document.getElementById('ai-tab-defense');
-    if (!panel) return;
-    var p = getProject(_currentProjId);
-    var def = getDefenseAssist(_currentProjId);
-    if (!hasDefenseAssist(p) || !def) {
-      panel.innerHTML =
-        '<div class="ai-cap-empty">' +
-          '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">尚未进入答辩环节</div>' +
-          '<p class="text-xs text-muted" style="line-height:1.6;">当项目进入专家评审或答辩阶段后，将在此提供答辩安排、预测问题与准备清单。</p>' +
-        '</div>';
-      return;
-    }
-    var qHtml = def.questions.map(function (q, i) {
-      return '<div class="ai-defense-q"><span class="ai-defense-q-num">' + (i + 1) + '</span><span>' + q + '</span></div>';
-    }).join('');
-    var cHtml = def.checklist.map(function (item, i) {
-      return '<label class="ai-defense-check-item"><input type="checkbox"> <span>' + item + '</span></label>';
-    }).join('');
-    panel.innerHTML =
-      '<div class="meta-card" style="margin-bottom:16px;">' +
+  function renderDefenseScheduleHtml(def, mode) {
+    if (mode === 'prep') {
+      return '<div class="meta-card ai-defense-schedule-pending" style="margin-bottom:16px;">' +
         '<div class="meta-title">答辩安排</div>' +
         '<div class="meta-row"><span class="meta-k">时间</span><span class="meta-v text-xs">' + def.time + '</span></div>' +
         '<div class="meta-row"><span class="meta-k">地点</span><span class="meta-v text-xs">' + def.room + '</span></div>' +
         '<div class="meta-row"><span class="meta-k">时长</span><span class="meta-v text-xs">' + def.duration + '</span></div>' +
-      '</div>' +
+        '<div class="ai-defense-schedule-note">答辩排期确定后将在此自动更新，您可先使用下方预演内容进行准备。</div>' +
+      '</div>';
+    }
+    return '<div class="meta-card" style="margin-bottom:16px;">' +
+      '<div class="meta-title">答辩安排</div>' +
+      '<div class="meta-row"><span class="meta-k">时间</span><span class="meta-v text-xs">' + def.time + '</span></div>' +
+      '<div class="meta-row"><span class="meta-k">地点</span><span class="meta-v text-xs">' + def.room + '</span></div>' +
+      '<div class="meta-row"><span class="meta-k">时长</span><span class="meta-v text-xs">' + def.duration + '</span></div>' +
+    '</div>';
+  }
+
+  function renderDefenseBodyHtml(def, mode) {
+    var qHtml = def.questions.map(function (q, i) {
+      return '<div class="ai-defense-q"><span class="ai-defense-q-num">' + (i + 1) + '</span><span>' + q + '</span></div>';
+    }).join('');
+    var cHtml = def.checklist.map(function (item) {
+      return '<label class="ai-defense-check-item"><input type="checkbox"> <span>' + item + '</span></label>';
+    }).join('');
+    var prepBanner = mode === 'prep'
+      ? '<div class="ai-defense-prep-banner">' +
+          '答辩尚未安排 · 以下为基于申请材料的 <strong>答辩预演</strong>（AI 生成 · 仅供参考）' +
+          '<div style="margin-top:10px;">' +
+            '<button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_AI.regenerateDefensePrep()">重新生成预演问题</button>' +
+          '</div></div>'
+      : '';
+    return prepBanner +
+      renderDefenseScheduleHtml(def, mode) +
       '<div class="ai-block" style="margin-bottom:16px;">' +
         '<div class="ai-block-hd"><div class="ai-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="white"><path d="M8 1L1 5v5.5C1 13.5 4.5 15.5 8 16c3.5-.5 7-2.5 7-5.5V5L8 1z"/></svg></div>' +
         '<div class="ai-block-title">答辩一页摘要</div><span class="ai-tag" style="margin-left:auto;">AI 生成 · 仅供参考</span></div>' +
@@ -860,10 +1007,31 @@
           '<div class="ai-cell"><div class="ai-cell-lbl">评审关注</div>' + def.reviewHint + '</div>' +
         '</div></div>' +
       '<div class="form-card" style="margin-bottom:16px;">' +
-        '<div class="form-section-title">预测答辩问题</div>' + qHtml + '</div>' +
+        '<div class="form-section-title">' + (mode === 'prep' ? '预测答辩问题（预演）' : '预测答辩问题') + '</div>' + qHtml + '</div>' +
       '<div class="form-card">' +
         '<div class="form-section-title">答辩准备清单</div>' +
         '<div class="ai-defense-checklist">' + cHtml + '</div></div>';
+  }
+
+  function renderDefenseTab() {
+    var panel = document.getElementById('ai-tab-defense');
+    if (!panel) return;
+    var p = getProject(_currentProjId);
+    var mode = getDefenseMode(p);
+    var def = getDefenseAssistResolved(_currentProjId);
+    if (!mode || !def) {
+      var cta = hasQualityReport(p)
+        ? '<button class="btn btn-primary" type="button" onclick="ARGP_AI.openAssistant(\'quality\', \'' + _currentProjId + '\')">查看 AI 质量检测</button>'
+        : '<button class="btn btn-primary" type="button" onclick="showPage(\'proj-new\')">前往项目申请</button>';
+      panel.innerHTML =
+        '<div class="ai-cap-empty">' +
+          '<div style="font-size:14px;font-weight:600;margin-bottom:8px;">暂无法进行答辩预演</div>' +
+          '<p class="text-xs text-muted" style="line-height:1.6;margin-bottom:14px;">请先完成申请书正文或完成 AI 质量自检，再使用答辩预演功能。</p>' +
+          cta +
+        '</div>';
+      return;
+    }
+    panel.innerHTML = renderDefenseBodyHtml(def, mode);
   }
 
   function renderTabPanels() {
@@ -942,7 +1110,11 @@
     hasQualityReport: hasQualityReport,
     getWritingAssist: getWritingAssist,
     hasDefenseAssist: hasDefenseAssist,
+    canUseDefenseAssist: canUseDefenseAssist,
+    getDefenseMode: getDefenseMode,
     getDefenseAssist: getDefenseAssist,
+    getDefenseAssistResolved: getDefenseAssistResolved,
+    regenerateDefensePrep: regenerateDefensePrep,
     render: render,
     onProjectChange: onProjectChange,
     selectWritingSection: selectWritingSection,

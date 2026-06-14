@@ -40,30 +40,303 @@
     }
   ];
 
-  var APPEAL_REQUESTS = [
-    {
-      id: 'APL-SEED-1',
-      projId: 'PROJ-2026-0078',
-      title: '基于深度学习的医学影像分割研究',
-      applicant: '李明',
-      type: 'procedure',
-      typeLabel: '评审程序违规（如未通知答辩、专家数量不足）',
-      reason: '答辩通知于答辩前仅 1 个工作日送达，不符合至少 3 个工作日的程序要求；请求启动复议流程。',
-      time: '2小时前',
-      status: 'pending'
-    }
-  ];
+  var APPEAL_REQUESTS = [];
 
   var _currentAppealProjId = null;
   var _disputesTab = 'objection';
 
   function getProject(id) {
+    if (window.ARGP_MOCK && window.ARGP_MOCK.getProjectForDetail) {
+      return window.ARGP_MOCK.getProjectForDetail(id);
+    }
     if (!window.ARGP_MOCK || !window.ARGP_MOCK.STUDENT_PROJECTS) return null;
     var list = window.ARGP_MOCK.STUDENT_PROJECTS;
     for (var i = 0; i < list.length; i++) {
       if (list[i].id === id) return list[i];
     }
     return null;
+  }
+
+  function getStudentProject(id) {
+    if (!window.ARGP_MOCK || !window.ARGP_MOCK.STUDENT_PROJECTS) return null;
+    var list = window.ARGP_MOCK.STUDENT_PROJECTS;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function syncCatalogObjectionStatus(projId, status) {
+    if (!window.ARGP_MOCK || !window.ARGP_MOCK.PUB_CATALOG) return;
+    window.ARGP_MOCK.PUB_CATALOG.forEach(function (c) {
+      if (c.id === projId) c.objectionStatus = status;
+    });
+  }
+
+  function isPubPeriodActive() {
+    return window.ARGP_MOCK && window.ARGP_MOCK.isPubPeriodActive && window.ARGP_MOCK.isPubPeriodActive();
+  }
+
+  function getDisputeContext(p, opts) {
+    opts = opts || {};
+    if (!p) {
+      return { showPanel: false, canAppeal: false, canObject: false, mode: null };
+    }
+    var ctx = {
+      showPanel: false,
+      canAppeal: false,
+      canObject: false,
+      mode: null,
+      appealState: null,
+      objectionState: null,
+      isOwn: p.isOwn !== false && !p._readOnly
+    };
+    if (p.status === 'failed' && ctx.isOwn) {
+      ctx.showPanel = true;
+      ctx.mode = 'appeal';
+      if (p.appealStatus === 'pending' || p.appealStatus === 'reviewing') {
+        ctx.appealState = 'processing';
+      } else if (p.appealStatus === 'closed') {
+        ctx.appealState = 'closed';
+      } else if (canSubmitAppeal(p)) {
+        ctx.appealState = 'open';
+        ctx.canAppeal = true;
+      }
+    } else if (p.status === 'pub' && isPubPeriodActive()) {
+      ctx.showPanel = true;
+      if (p.isOwn) {
+        ctx.mode = 'pub-own';
+      } else {
+        ctx.mode = 'objection';
+        if (p.objectionStatus === 'pending' || p.objectionStatus === 'processing') {
+          ctx.objectionState = 'processing';
+        } else if (p.objectionStatus === 'closed') {
+          ctx.objectionState = 'closed';
+        } else if (!p.objectionStatus) {
+          ctx.objectionState = 'open';
+          ctx.canObject = true;
+        }
+      }
+    }
+    return ctx;
+  }
+
+  function hasDisputeContent(p, opts) {
+    return getDisputeContext(p, opts).showPanel;
+  }
+
+  function renderAppealFormHtml(p) {
+    var reasonOpts = APPEAL_REASONS.map(function (r) {
+      return '<option value="' + r.id + '">' + r.label + '</option>';
+    }).join('');
+    return '<div class="dispute-section">' +
+      '<div class="form-section-title">评审结果申诉</div>' +
+      '<div class="dispute-hint dispute-hint-warn">' +
+        '<strong>受理范围说明：</strong>申诉仅受理<strong>程序性问题</strong>，不接受对学术判断本身的异议。</div>' +
+      '<div style="font-size:13px;line-height:1.75;color:var(--text-secondary);margin-bottom:14px;">' +
+        (p.resultNotice || '经评审委员会审议，本项目未准予立项。') + '</div>' +
+      '<div class="form-grid form-grid-2" style="margin-bottom:14px;">' +
+        '<div><div class="form-label">综合评分</div><div class="mono text-danger" style="margin-top:4px;font-size:15px;">' +
+          (p.finalScore != null ? p.finalScore : '—') + ' 分</div></div>' +
+        '<div><div class="form-label">申诉截止</div><div style="margin-top:4px;font-size:13px;">' +
+          (p.appealDeadline || '结果通知后 7 个工作日内') + '</div></div></div>' +
+      '<div class="form-grid form-grid-1">' +
+        '<div><label class="form-label">申诉类型 <span style="color:#dc2626;">*</span></label>' +
+          '<select class="form-select" id="appeal-reason-type">' +
+            '<option value="">请选择申诉类型</option>' + reasonOpts + '</select></div>' +
+        '<div><label class="form-label">申诉理由 <span style="color:#dc2626;">*</span></label>' +
+          '<textarea class="form-textarea" id="appeal-reason-text" style="min-height:120px;" ' +
+            'placeholder="请详细说明程序问题及可核查依据…"></textarea></div></div>' +
+      '<div class="btn-group" style="margin-top:14px;">' +
+        '<button class="btn btn-primary" type="button" onclick="ARGP_APPEAL.submitAppealFromDetail()">提交申诉</button></div></div>';
+  }
+
+  function renderObjectionFormHtml(p) {
+    var typeOpts = Object.keys(OBJECTION_TYPES).map(function (k) {
+      return '<option value="' + k + '">' + OBJECTION_TYPES[k] + '</option>';
+    }).join('');
+    return '<div class="dispute-section">' +
+      '<div class="form-section-title">公示异议</div>' +
+      '<div class="dispute-hint dispute-hint-warn" style="margin-bottom:12px;">' +
+        '您正在对<strong>他人项目</strong>（' + (p.applicant || '—') + ' · ' + (p.pubGrade || '—') +
+        '）提出公示异议，请填写异议类型与理由。</div>' +
+      '<div class="dispute-hint dispute-hint-warn">' +
+        '公示期内（' + (window.ARGP_MOCK && window.ARGP_MOCK.PUB_PERIOD ? window.ARGP_MOCK.PUB_PERIOD.label : '7 天') +
+        '），如对<strong>他人项目立项等级或评审过程</strong>有异议，可填写异议申请。异议将由学术委员会审查，10 个工作日内答复。</div>' +
+      '<div class="form-grid form-grid-2" style="margin-bottom:12px;">' +
+        '<div><div class="form-label">关联项目</div><div style="margin-top:4px;font-size:13px;">' + p.title + '</div>' +
+          '<div class="mono text-xs text-muted">' + p.id + '</div></div>' +
+        '<div><div class="form-label">立项等级</div><div style="margin-top:4px;font-size:13px;">' + (p.pubGrade || '—') + '</div></div></div>' +
+      '<div class="form-grid form-grid-1">' +
+        '<div><label class="form-label">异议类型 <span style="color:#dc2626;">*</span></label>' +
+          '<select class="form-select" id="objection-type">' + typeOpts + '</select></div>' +
+        '<div><label class="form-label">异议内容 <span style="color:#dc2626;">*</span></label>' +
+          '<textarea class="form-textarea" id="objection-reason-text" style="min-height:100px;" ' +
+            'placeholder="请详细描述异议内容及理由，并附上相关依据…"></textarea></div></div>' +
+      '<div class="btn-group" style="margin-top:14px;">' +
+        '<button class="btn btn-primary" type="button" onclick="ARGP_APPEAL.submitObjectionFromDetail(\'' + p.id + '\')">提交异议</button></div></div>';
+  }
+
+  function renderDisputeTabContent(p, ctx) {
+    if (!ctx.showPanel) {
+      return '<div style="padding:24px;text-align:center;color:var(--text-3);font-size:13px;">当前项目无可用的争议与申诉操作</div>';
+    }
+    var html = '';
+    if (ctx.mode === 'appeal') {
+      if (ctx.appealState === 'processing') {
+        html = '<div class="dispute-status dispute-status-warn">' +
+          '<strong>申诉受理中</strong> · 您的评审结果申诉已由秘书处受理，正在审核是否符合复议条件。' +
+          '<div style="margin-top:8px;font-size:12px;">受理后将组建 3 位未参与原评审的专家进行复议，请留意消息通知。</div></div>';
+      } else if (ctx.appealState === 'closed') {
+        html = '<div class="dispute-status dispute-status-muted">' +
+          '<strong>申诉已结案</strong> · 复议结果为终局结论，已写入 Governance Graph 申诉记录。</div>';
+      } else if (ctx.canAppeal) {
+        html = renderAppealFormHtml(p);
+      }
+      html += '<div class="dispute-flow-card">' +
+        '<div class="form-section-title">复议流程</div>' +
+        '<div style="font-size:12.5px;line-height:1.8;color:var(--text-secondary);">' +
+          '<p style="margin:0 0 8px;"><strong>1.</strong> 秘书处审核是否符合受理条件</p>' +
+          '<p style="margin:0 0 8px;"><strong>2.</strong> 组建 3 位新专家复议小组</p>' +
+          '<p style="margin:0 0 8px;"><strong>3.</strong> 15 个工作日内出具复议意见</p>' +
+          '<p style="margin:0;"><strong>4.</strong> 结果写入 Governance Graph</p></div></div>';
+    } else if (ctx.mode === 'pub-own') {
+      html = '<div class="dispute-status dispute-status-info">' +
+        '<strong>本项目已准予立项</strong> · 公示期内您的立项结果已公开。' +
+        '<div style="margin-top:8px;font-size:12px;">如对<strong>他人项目</strong>立项等级有异议，请从「立项项目公示」进入对应项目详情提交公示异议。</div></div>';
+    } else if (ctx.mode === 'objection') {
+      if (ctx.objectionState === 'processing') {
+        html = '<div class="dispute-status dispute-status-warn">' +
+          '<strong>异议已提交</strong> · 秘书处已收到您的公示异议，将在 10 个工作日内答复。</div>';
+      } else if (ctx.objectionState === 'closed') {
+        html = '<div class="dispute-status dispute-status-muted">' +
+          '<strong>异议已结案</strong> · 学术委员会已完成审查并通知结果。</div>';
+      } else if (ctx.canObject) {
+        html = renderObjectionFormHtml(p);
+      }
+    }
+    return html;
+  }
+
+  function renderDisputeSidebarSummary(p, ctx) {
+    if (!ctx.showPanel) return '';
+    if (ctx.mode === 'appeal') {
+      if (ctx.appealState === 'processing') {
+        return '<span style="color:#b45309;">●</span> 申诉受理中 · 秘书处正在审核';
+      }
+      if (ctx.appealState === 'closed') {
+        return '申诉已结案 · 复议结果为终局结论';
+      }
+      if (ctx.canAppeal) {
+        return '对评审结果有程序性异议？' +
+          '<a class="section-action" style="margin-left:4px;" href="#" onclick="ARGP_APPEAL.focusDisputeTab();return false;">提交申诉</a>' +
+          '<span style="display:block;margin-top:4px;font-size:11px;color:var(--text-3);">截止 ' +
+          (p.appealDeadline || '结果通知后 7 个工作日') + '</span>';
+      }
+    }
+    if (ctx.mode === 'pub-own') {
+      return '本项目已公示 · 立项等级 ' + (p.pubGrade || '—');
+    }
+    if (ctx.mode === 'objection') {
+      if (ctx.objectionState === 'processing') {
+        return '<span style="color:#b45309;">●</span> 公示异议已提交 · 等待秘书处处理';
+      }
+      if (ctx.canObject) {
+        return '对立项等级或评审过程有异议？' +
+          '<a class="section-action" style="margin-left:4px;" href="#" onclick="ARGP_APPEAL.focusDisputeTab();return false;">提交公示异议</a>';
+      }
+    }
+    return '';
+  }
+
+  function getDisputeTabLabel(ctx) {
+    if (!ctx || !ctx.showPanel) return '争议与申诉';
+    if (ctx.mode === 'objection') return '公示异议';
+    if (ctx.mode === 'pub-own') return '公示结果';
+    return '争议与申诉';
+  }
+
+  function updatePubObjectionEntry(p, ctx) {
+    var tabEl = document.getElementById('proj-detail-dispute-tab');
+    var banner = document.getElementById('proj-detail-pub-objection-banner');
+    var tabLabel = getDisputeTabLabel(ctx);
+
+    if (tabEl && ctx.showPanel) tabEl.textContent = tabLabel;
+
+    if (banner) {
+      banner.classList.add('role-hidden');
+      banner.innerHTML = '';
+    }
+
+    renderPubMetaCard(p, ctx);
+  }
+
+  function renderPubMetaCard(p, ctx) {
+    var pubMeta = document.getElementById('proj-detail-pub-meta');
+    if (!pubMeta) return;
+    var showPub = p && p.status === 'pub' && (p.pubGrade || p.finalScore != null);
+    if (!showPub) {
+      pubMeta.classList.add('role-hidden');
+      pubMeta.innerHTML = '';
+      return;
+    }
+    pubMeta.classList.remove('role-hidden');
+    var period = window.ARGP_MOCK && window.ARGP_MOCK.PUB_PERIOD;
+    var html =
+      '<div class="meta-title">公示结果</div>' +
+      '<div class="meta-row"><span class="meta-k">立项等级</span><span class="meta-v">' + (p.pubGrade || '—') + '</span></div>' +
+      '<div class="meta-row"><span class="meta-k">综合评分</span><span class="meta-v mono">' +
+        (p.finalScore != null ? p.finalScore + ' 分' : '—') + '</span></div>';
+    if (period && period.active) {
+      html += '<div class="meta-row"><span class="meta-k">公示期</span><span class="meta-v text-xs">' + period.label + '</span></div>';
+    }
+    if (ctx.mode === 'objection' && ctx.canObject) {
+      html +=
+        '<div class="pub-meta-objection-action">' +
+          '<button class="btn btn-sm btn-primary" type="button" style="width:100%;" onclick="ARGP_APPEAL.focusDisputeTab()">提出异议</button>' +
+        '</div>';
+    } else if (ctx.mode === 'objection' && ctx.objectionState === 'processing') {
+      html += '<div class="pub-meta-objection-status">公示异议已提交 · 等待秘书处处理</div>';
+    }
+    pubMeta.innerHTML = html;
+  }
+
+  function renderProjDetailDisputeUI(p, opts) {
+    opts = opts || {};
+    _currentAppealProjId = p ? p.id : null;
+    var ctx = getDisputeContext(p, opts);
+    var tabEl = document.getElementById('proj-detail-dispute-tab');
+    var tabPanel = document.getElementById('dt-dispute');
+    var sidebar = document.getElementById('proj-detail-dispute-panel');
+    var panelTitle = getDisputeTabLabel(ctx);
+    if (tabEl) {
+      tabEl.classList.toggle('role-hidden', !ctx.showPanel || ctx.mode === 'pub-own');
+      if (ctx.showPanel && ctx.mode !== 'pub-own') tabEl.textContent = panelTitle;
+    }
+    if (tabPanel) tabPanel.innerHTML = renderDisputeTabContent(p, ctx);
+    if (sidebar) {
+      if (ctx.mode === 'pub-own' || ctx.mode === 'objection') {
+        sidebar.classList.add('role-hidden');
+        sidebar.innerHTML = '';
+      } else {
+        var summary = renderDisputeSidebarSummary(p, ctx);
+        if (!summary) {
+          sidebar.classList.add('role-hidden');
+        } else {
+          sidebar.classList.remove('role-hidden');
+          sidebar.innerHTML = '<div class="meta-title">' + panelTitle + '</div><div style="font-size:12px;line-height:1.65;">' + summary + '</div>';
+        }
+      }
+    }
+    updatePubObjectionEntry(p, ctx);
+    return ctx;
+  }
+
+  function focusDisputeTab() {
+    var tab = document.getElementById('proj-detail-dispute-tab');
+    if (tab && typeof window.setTab === 'function') {
+      window.setTab(tab, 'dt-dispute');
+    }
   }
 
   function getAvoidanceCount() {
@@ -122,89 +395,25 @@
     if (!projId && window.ARGP_MOCK && window.ARGP_MOCK.getCurrentDetailId) {
       projId = window.ARGP_MOCK.getCurrentDetailId();
     }
-    var p = getProject(projId);
+    var p = getStudentProject(projId) || getProject(projId);
     if (!p) {
       if (typeof showToast === 'function') showToast('项目不存在', 'warn');
       return;
     }
-    if (!canSubmitAppeal(p)) {
-      if (p.appealStatus === 'pending' || p.appealStatus === 'reviewing') {
-        if (typeof showToast === 'function') showToast('申诉已提交，请等待秘书处受理', 'info');
-      } else if (p.appealStatus === 'closed') {
-        if (typeof showToast === 'function') showToast('申诉已结案，不可重复提交', 'info');
-      }
-      if (window.ARGP_MOCK && window.ARGP_MOCK.openProjectDetail) {
-        window.ARGP_MOCK.openProjectDetail(projId);
-      }
-      return;
+    if (window.ARGP_MOCK && window.ARGP_MOCK.openProjectDetail) {
+      window.ARGP_MOCK.openProjectDetail(projId);
     }
-    _currentAppealProjId = projId;
-    if (typeof window.showPage === 'function') window.showPage('proj-appeal');
+    setTimeout(function () {
+      focusDisputeTab();
+    }, 80);
   }
 
-  function renderAppealPage() {
-    var root = document.getElementById('page-proj-appeal');
-    if (!root) return;
+  function submitAppealFromDetail() {
     var projId = _currentAppealProjId;
     if (!projId && window.ARGP_MOCK && window.ARGP_MOCK.getCurrentDetailId) {
       projId = window.ARGP_MOCK.getCurrentDetailId();
     }
-    var p = getProject(projId);
-    if (!p || p.status !== 'failed') {
-      root.innerHTML = '<p class="text-muted">暂无可申诉的评审结果。</p>';
-      return;
-    }
-    _currentAppealProjId = p.id;
-    var reasonOpts = APPEAL_REASONS.map(function (r) {
-      return '<option value="' + r.id + '">' + r.label + '</option>';
-    }).join('');
-
-    root.innerHTML =
-      '<div class="breadcrumb">' +
-        '<span class="bc-link" onclick="showPage(\'my-proj\')">我的项目</span>' +
-        '<span class="bc-sep">›</span>' +
-        '<span class="bc-link" onclick="ARGP_MOCK.openProjectDetail(\'' + p.id + '\')">' + p.title + '</span>' +
-        '<span class="bc-sep">›</span><span>评审结果申诉</span></div>' +
-      '<div style="margin-bottom:18px;">' +
-        '<div class="page-title">评审结果申诉</div>' +
-        '<div style="display:flex;gap:8px;margin-top:5px;flex-wrap:wrap;">' +
-          '<span class="mono text-xs text-muted">' + p.id + '</span>' +
-          '<span class="my-proj-status st-failed">不予立项</span></div></div>' +
-      '<div class="detail-layout"><div>' +
-        '<div class="form-card">' +
-          '<div class="form-section-title">评审结果通知</div>' +
-          '<div style="font-size:13px;line-height:1.75;color:var(--text-secondary);margin-bottom:14px;">' +
-            (p.resultNotice || '经评审委员会审议，本项目未准予立项。') + '</div>' +
-          '<div class="form-grid form-grid-2">' +
-            '<div><div class="form-label">综合评分</div><div class="mono text-danger" style="margin-top:4px;font-size:15px;">' +
-              (p.finalScore != null ? p.finalScore : '—') + ' 分</div></div>' +
-            '<div><div class="form-label">申诉截止</div><div style="margin-top:4px;font-size:13px;">' +
-              (p.appealDeadline || '结果通知后 7 个工作日内') + '</div></div></div></div>' +
-        '<div class="form-card">' +
-          '<div class="form-section-title">填写申诉申请</div>' +
-          '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius);padding:10px 13px;font-size:12.5px;color:#991b1b;line-height:1.65;margin-bottom:14px;">' +
-            '<strong>受理范围说明：</strong>申诉仅受理<strong>程序性问题</strong>，不接受对学术判断本身的异议。</div>' +
-          '<div class="form-grid form-grid-1" style="margin-bottom:12px;">' +
-            '<div><label class="form-label">申诉类型 <span style="color:#dc2626;">*</span></label>' +
-              '<select class="form-select" id="appeal-reason-type">' +
-                '<option value="">请选择申诉类型</option>' + reasonOpts + '</select></div>' +
-            '<div><label class="form-label">申诉理由 <span style="color:#dc2626;">*</span></label>' +
-              '<textarea class="form-textarea" id="appeal-reason-text" style="min-height:120px;" ' +
-                'placeholder="请详细说明程序问题及可核查依据…"></textarea></div></div>' +
-          '<div class="btn-group">' +
-            '<button class="btn btn-ghost" type="button" onclick="ARGP_MOCK.openProjectDetail(\'' + p.id + '\')">返回项目</button>' +
-            '<button class="btn btn-primary" type="button" onclick="ARGP_APPEAL.submitAppeal()">提交申诉</button></div></div></div>' +
-      '<div><div class="meta-card">' +
-        '<div class="meta-title">复议流程</div>' +
-        '<div style="font-size:12.5px;line-height:1.8;color:var(--text-secondary);">' +
-          '<p style="margin:0 0 8px;"><strong>1.</strong> 秘书处审核是否符合受理条件</p>' +
-          '<p style="margin:0 0 8px;"><strong>2.</strong> 组建 3 位新专家复议小组</p>' +
-          '<p style="margin:0 0 8px;"><strong>3.</strong> 15 个工作日内出具复议意见</p>' +
-          '<p style="margin:0;"><strong>4.</strong> 结果写入 Governance Graph</p></div></div></div></div>';
-  }
-
-  function submitAppeal() {
-    var p = getProject(_currentAppealProjId);
+    var p = getStudentProject(projId);
     if (!p || !canSubmitAppeal(p)) return;
     var typeEl = document.getElementById('appeal-reason-type');
     var textEl = document.getElementById('appeal-reason-text');
@@ -224,7 +433,7 @@
       id: 'APL-' + Date.now(),
       projId: p.id,
       title: p.title,
-      applicant: '李明',
+      applicant: '李同学',
       type: type,
       typeLabel: typeLabel,
       reason: text,
@@ -235,12 +444,50 @@
       window.ARGP_MOCK.initStudentProjects();
     }
     refreshAllDisputeViews();
+    if (window.ARGP_MOCK && window.ARGP_MOCK.applyProjDetailView) {
+      window.ARGP_MOCK.applyProjDetailView();
+    }
     if (typeof showToast === 'function') {
       showToast('申诉已提交，秘书处将在 3 个工作日内审核受理条件', 'success');
     }
-    if (window.ARGP_MOCK && window.ARGP_MOCK.openProjectDetail) {
-      window.ARGP_MOCK.openProjectDetail(p.id);
+  }
+
+  function submitObjectionFromDetail(projId) {
+    var p = getProject(projId);
+    if (!p) return;
+    var ctx = getDisputeContext(p);
+    if (!ctx.canObject) {
+      if (typeof showToast === 'function') showToast('当前无法提交公示异议', 'warn');
+      return;
     }
+    var typeEl = document.getElementById('objection-type');
+    var textEl = document.getElementById('objection-reason-text');
+    var type = typeEl ? typeEl.value : 'grade';
+    var text = textEl ? textEl.value.trim() : '';
+    if (!text) {
+      if (typeof showToast === 'function') showToast('请填写异议内容', 'warn');
+      return;
+    }
+    registerObjection({
+      projId: p.id,
+      projTitle: p.title,
+      applicant: p.applicant || '—',
+      type: type,
+      typeLabel: OBJECTION_TYPES[type] || type,
+      reason: text,
+      objector: '李同学'
+    });
+    syncCatalogObjectionStatus(p.id, 'pending');
+    if (window.ARGP_MOCK && window.ARGP_MOCK.applyProjDetailView) {
+      window.ARGP_MOCK.applyProjDetailView();
+    }
+    if (typeof showToast === 'function') {
+      showToast('异议已提交，秘书处将在 10 个工作日内核实', 'success');
+    }
+  }
+
+  function submitAppeal() {
+    submitAppealFromDetail();
   }
 
   function registerObjection(data) {
@@ -431,7 +678,7 @@
     APPEAL_REQUESTS.forEach(function (r) {
       if (r.id === id) {
         r.status = 'reviewing';
-        var p = getProject(r.projId);
+        var p = getStudentProject(r.projId);
         if (p) p.appealStatus = 'reviewing';
       }
     });
@@ -449,7 +696,7 @@
       return r.id !== id;
     });
     if (projId) {
-      var p = getProject(projId);
+      var p = getStudentProject(projId);
       if (p && p.appealStatus === 'pending') p.appealStatus = null;
     }
     refreshAllDisputeViews();
@@ -468,7 +715,7 @@
       APPEAL_REQUESTS.forEach(function (r) {
         if (r.id === id) {
           r.status = 'closed';
-          var p = getProject(r.projId);
+          var p = getStudentProject(r.projId);
           if (p) p.appealStatus = 'closed';
         }
       });
@@ -486,9 +733,15 @@
 
   window.ARGP_APPEAL = {
     openAppealPage: openAppealPage,
-    renderAppealPage: renderAppealPage,
+    focusDisputeTab: focusDisputeTab,
+    renderProjDetailDisputeUI: renderProjDetailDisputeUI,
+    getDisputeContext: getDisputeContext,
+    hasDisputeContent: hasDisputeContent,
+    submitAppealFromDetail: submitAppealFromDetail,
+    submitObjectionFromDetail: submitObjectionFromDetail,
     submitAppeal: submitAppeal,
     canSubmitAppeal: canSubmitAppeal,
+    syncCatalogObjectionStatus: syncCatalogObjectionStatus,
     registerObjection: registerObjection,
     renderSecretaryAppealsPanel: renderSecretaryAppealsPanel,
     renderSecretaryObjectionsPanel: renderSecretaryObjectionsPanel,

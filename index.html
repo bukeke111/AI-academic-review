@@ -2354,19 +2354,14 @@ body {
       <span class="badge b-pub">公示中</span>
     </div>
     <p style="padding:0 18px 14px; font-size:13px; color:var(--text-secondary); line-height:1.7; margin:0;">
-      经评审委员会审议，以下项目准予立项。公示期内如对<strong>他人项目立项等级</strong>有异议，请通过消息中心「公示公告」提交<strong>公示异议</strong>；如对<strong>本人项目未通过</strong>有程序性问题异议，请进入对应<strong>项目详情页</strong>提交申诉。
+      经评审委员会审议，以下项目准予立项。公示期内如对<strong>他人项目立项等级</strong>有异议，请点击对应项目「查看详情」，在项目详情页提交<strong>公示异议</strong>；如对<strong>本人项目未通过</strong>有程序性问题异议，请进入<strong>我的项目 → 项目详情 → 争议与申诉</strong>提交申诉。
     </p>
     <div class="data-table-wrap" style="border:none; border-radius:0; box-shadow:none; margin:0;">
       <table class="data-table">
         <thead>
-          <tr><th>项目名称</th><th>申请人</th><th>学院</th><th>立项等级</th><th>综合评分</th></tr>
+          <tr><th>项目名称</th><th>申请人</th><th>学院</th><th>立项等级</th><th>综合评分</th><th>操作</th></tr>
         </thead>
-        <tbody>
-          <tr><td><div class="td-name">量子计算在密码学中的应用探索</div><div class="td-id">PROJ-2026-0029</div></td><td>孙杰</td><td>计算机学院</td><td><span class="badge" style="background:#fef3c7;color:#b45309;">国家级</span></td><td><span class="mono text-green">93</span></td></tr>
-          <tr><td><div class="td-name">联邦学习框架下的数据隐私保护</div><div class="td-id">PROJ-2026-0045</div></td><td>陈浩</td><td>计算机学院</td><td><span class="badge b-blue">校级</span></td><td><span class="mono text-green">88</span></td></tr>
-          <tr><td><div class="td-name">基于Transformer的中文医学文本理解</div><div class="td-id">PROJ-2026-0063</div></td><td>王芳</td><td>信息学院</td><td><span class="badge b-blue">校级</span></td><td><span class="mono text-green">91</span></td></tr>
-          <tr><td><div class="td-name">智能合约形式化验证方法</div><div class="td-id">PROJ-2026-0055</div></td><td>黄晨</td><td>软件学院</td><td><span class="badge b-green">院级</span></td><td><span class="mono text-warn">82</span></td></tr>
-          <tr><td><div class="td-name">多模态情感分析系统设计</div><div class="td-id">PROJ-2026-0031</div></td><td>赵磊</td><td>信息学院</td><td><span class="badge b-green">院级</span></td><td><span class="mono text-warn">74</span></td></tr>
+        <tbody id="pub-project-list-body">
         </tbody>
       </table>
     </div>
@@ -2836,6 +2831,7 @@ body {
       </div>
     </div>
     <div id="proj-detail-pre-actions" style="display:flex; gap:8px; flex-shrink:0;">
+      <button class="btn btn-sm btn-secondary role-hidden" id="proj-detail-btn-defense" type="button" onclick="openAiAssistant('defense')">答辩预演</button>
       <button class="btn btn-sm btn-primary role-hidden" id="proj-detail-btn-edit" type="button" onclick="showPage('proj-new')">继续编辑</button>
       <button class="btn btn-sm btn-secondary role-hidden" id="proj-detail-btn-ai" type="button" onclick="openAiAssistant('quality', null, true)">查看 AI 报告</button>
     </div>
@@ -2844,11 +2840,12 @@ body {
   <div class="detail-layout">
     <div>
       <div class="tabs" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0; border-bottom:1px solid var(--border);">
-        <div class="tab-item active" onclick="setTab(this,'dt-overview')">项目概览</div>
-        <div class="tab-item" onclick="setTab(this,'dt-material')">申请材料</div>
-        <div class="tab-item" onclick="setTab(this,'dt-attach')">附件材料</div>
-        <div class="tab-item" onclick="setTab(this,'dt-result')">成果记录</div>
-        <div class="tab-item" onclick="setTab(this,'dt-version')">版本管理</div>
+        <div class="tab-item active" id="proj-detail-tab-overview" onclick="setTab(this,'dt-overview')">项目概览</div>
+        <div class="tab-item" id="proj-detail-tab-material" onclick="setTab(this,'dt-material')">申请材料</div>
+        <div class="tab-item" id="proj-detail-tab-attach" onclick="setTab(this,'dt-attach')">附件材料</div>
+        <div class="tab-item" id="proj-detail-tab-result" onclick="setTab(this,'dt-result')">成果记录</div>
+        <div class="tab-item" id="proj-detail-tab-version" onclick="setTab(this,'dt-version')">版本管理</div>
+        <div class="tab-item role-hidden" id="proj-detail-dispute-tab" onclick="setTab(this,'dt-dispute')">争议与申诉</div>
       </div>
 
       <div id="dt-overview" class="form-card" style="border-top:none; border-radius:0 0 var(--radius-lg) var(--radius-lg);">
@@ -2866,6 +2863,7 @@ body {
         <div id="proj-detail-guidance-note" style="margin-top:12px; background:#f5f5f5; border-radius:var(--radius); padding:10px 12px; border-left:3px solid #d9d9d9; font-size:12.5px; color:var(--text-secondary); line-height:1.6;">
           本项目已进入导师指导环节，申请材料已锁定。如需修改请联系指导导师。
         </div>
+        <div id="proj-detail-pub-objection-banner" class="pub-objection-entry role-hidden"></div>
       </div>
 
       <div id="dt-material" style="display:none;">
@@ -3003,10 +3001,12 @@ body {
           <div id="version-diff-body"></div>
         </div>
       </div>
+
+      <div id="dt-dispute" style="display:none;" class="form-card dispute-tab-panel"></div>
     </div>
 
     <div>
-      <div class="meta-card">
+      <div class="meta-card" id="proj-detail-progress-card">
         <div class="meta-title">项目进度</div>
         <div class="timeline">
           <div class="tl-item"><div class="tl-dot tl-done"></div><div class="tl-title">草稿阶段</div><div class="tl-time">2026-03-10</div><div class="tl-desc">完成初稿，AI自检通过</div></div>
@@ -3016,7 +3016,7 @@ body {
           <div class="tl-item"><div class="tl-dot tl-pending"></div><div class="tl-title">答辩评审</div><div class="tl-time">待完成</div></div>
         </div>
       </div>
-      <div class="meta-card">
+      <div class="meta-card" id="proj-detail-info-card">
         <div class="meta-title">项目信息</div>
         <div class="meta-row"><span class="meta-k">申请类型</span><span class="meta-v text-xs">国创计划</span></div>
         <div class="meta-row"><span class="meta-k">申请人</span><span class="meta-v">李明</span></div>
@@ -3024,16 +3024,15 @@ body {
         <div class="meta-row"><span class="meta-k">提交日期</span><span class="meta-v mono text-xs">2026-03-14</span></div>
         <div class="meta-row"><span class="meta-k">当前版本</span><span class="meta-v mono">v3</span></div>
       </div>
-      <div id="proj-detail-appeal-slot" class="meta-card role-hidden" style="padding:10px 14px;font-size:12px;line-height:1.65;color:var(--text-secondary);background:var(--bg-2);border-style:dashed;"></div>
+      <div id="proj-detail-pub-meta" class="meta-card role-hidden"></div>
+      <div id="proj-detail-dispute-panel" class="meta-card role-hidden dispute-sidebar-card"></div>
     </div>
   </div>
 </div><!-- /page-proj-detail -->
 
 
-<!-- ══════════════════════════
-     REVIEW RESULT APPEAL (student)
-══════════════════════════ -->
-<div class="page" id="page-proj-appeal" data-roles="student"></div>
+<!-- 评审结果申诉（已合并至项目详情页，保留占位兼容旧链接） -->
+<div class="page" id="page-proj-appeal" data-roles="student" style="display:none !important;"></div>
 
 
 <!-- ══════════════════════════
@@ -3223,6 +3222,9 @@ function nav(el, id) {
 
 function showPage(id) {
   id = resolvePageForRole(id);
+  if (id === 'proj-appeal') {
+    id = 'proj-detail';
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const t = document.getElementById('page-' + id);
   if (t) t.classList.add('active');
@@ -3233,12 +3235,19 @@ function showPage(id) {
       window.ARGP_MOCK.activateRejectedTabIfNeeded();
     }
   }
-  if (id === 'proj-detail' && window.ARGP_MOCK) {
-    if (window.ARGP_MOCK.applyProjDetailView) window.ARGP_MOCK.applyProjDetailView();
-    resetProjDetailTabs();
+  if (id === 'proj-pub' && window.ARGP_MOCK) {
+    if (window.ARGP_MOCK.renderPubProjectList) window.ARGP_MOCK.renderPubProjectList();
+    if (window.ARGP_MOCK.renderPubNavBadge) window.ARGP_MOCK.renderPubNavBadge();
   }
-  if (id === 'proj-appeal' && window.ARGP_APPEAL) {
-    window.ARGP_APPEAL.renderAppealPage();
+  if (id === 'proj-detail' && window.ARGP_MOCK) {
+    resetProjDetailTabs();
+    if (window.ARGP_MOCK.applyProjDetailView) window.ARGP_MOCK.applyProjDetailView();
+    if (window._focusDisputeTabOnLoad) {
+      window._focusDisputeTabOnLoad = false;
+      setTimeout(function () {
+        if (window.ARGP_APPEAL && window.ARGP_APPEAL.focusDisputeTab) window.ARGP_APPEAL.focusDisputeTab();
+      }, 80);
+    }
   }
   if (id === 'proj-list' && window.ARGP_BATCHES) {
     window.ARGP_BATCHES.renderBatchBar();
@@ -3362,7 +3371,7 @@ function setTab(el, id) {
   if (id !== 'dt-version' && window.ARGP_MOCK && window.ARGP_MOCK.closeVersionDetail) {
     window.ARGP_MOCK.closeVersionDetail();
   }
-  ['dt-overview','dt-material','dt-attach','dt-result','dt-version'].forEach(tid => {
+  ['dt-overview','dt-material','dt-attach','dt-result','dt-version','dt-dispute'].forEach(tid => {
     const e = document.getElementById(tid);
     if (e) e.style.display = 'none';
   });
@@ -3381,11 +3390,6 @@ function setTab(el, id) {
 function resetProjDetailTabs() {
   if (window.ARGP_MOCK && window.ARGP_MOCK.closeVersionDetail) {
     window.ARGP_MOCK.closeVersionDetail();
-  }
-  var tabs = document.querySelector('#page-proj-detail .tabs');
-  var firstTab = tabs ? tabs.querySelector('.tab-item') : null;
-  if (firstTab) {
-    setTab(firstTab, 'dt-overview');
   }
 }
 

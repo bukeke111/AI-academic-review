@@ -53,6 +53,8 @@
       mentor: '张教授',
       status: 'pub',
       stage: '公示',
+      pubGrade: '国家级',
+      finalScore: 93,
       aiScore: 93,
       updated: '2026-03-01',
       hasAiReport: true,
@@ -113,13 +115,114 @@
       resultNotice: '经答辩评审与现场投票，本项目综合评定为不予立项。主要意见：实验设计缺乏对照组设置，创新性论证不足，答辩中对数据集规模问题未能给出充分回应。',
       finalScore: 62,
       appealDeadline: '2026-03-24（剩余 7 个工作日）',
-      appealStatus: 'pending',
       aiScore: 58,
       updated: '2026-03-16',
       hasAiReport: true,
       showOnHome: true
     }
   ];
+
+  var PUB_PERIOD = {
+    start: '2026-03-17',
+    end: '2026-03-24',
+    label: '2026-03-17 至 2026-03-24',
+    active: true
+  };
+
+  var PUB_CATALOG = [
+    {
+      id: 'PROJ-2026-0029',
+      title: '量子计算在密码学中的应用探索',
+      applicant: '李同学',
+      college: '计算机学院',
+      pubGrade: '国家级',
+      finalScore: 93,
+      isOwn: true,
+      objectionStatus: null
+    },
+    {
+      id: 'PROJ-2026-0045',
+      title: '联邦学习框架下的数据隐私保护',
+      applicant: '陈浩',
+      college: '计算机学院',
+      pubGrade: '校级',
+      finalScore: 88,
+      isOwn: false,
+      objectionStatus: null
+    },
+    {
+      id: 'PROJ-2026-0063',
+      title: '基于Transformer的中文医学文本理解',
+      applicant: '王芳',
+      college: '信息学院',
+      pubGrade: '校级',
+      finalScore: 91,
+      isOwn: false,
+      objectionStatus: null
+    },
+    {
+      id: 'PROJ-2026-0055',
+      title: '智能合约形式化验证方法',
+      applicant: '黄晨',
+      college: '软件学院',
+      pubGrade: '院级',
+      finalScore: 82,
+      isOwn: false,
+      objectionStatus: null
+    },
+    {
+      id: 'PROJ-2026-0031',
+      title: '多模态情感分析系统设计',
+      applicant: '赵磊',
+      college: '信息学院',
+      pubGrade: '院级',
+      finalScore: 74,
+      isOwn: false,
+      objectionStatus: null
+    }
+  ];
+
+  function pubGradeBadge(grade) {
+    if (grade === '国家级') {
+      return '<span class="badge" style="background:#fef3c7;color:#b45309;">国家级</span>';
+    }
+    if (grade === '校级') {
+      return '<span class="badge b-blue">校级</span>';
+    }
+    return '<span class="badge b-green">院级</span>';
+  }
+
+  function renderPubProjectList() {
+    var tbody = document.getElementById('pub-project-list-body');
+    if (!tbody) return;
+    tbody.innerHTML = PUB_CATALOG.map(function (c) {
+      var scoreCls = scoreClass(c.finalScore);
+      return '<tr>' +
+        '<td><div class="td-name">' + c.title + '</div><div class="td-id">' + c.id + '</div></td>' +
+        '<td>' + c.applicant + '</td>' +
+        '<td>' + c.college + '</td>' +
+        '<td>' + pubGradeBadge(c.pubGrade) + '</td>' +
+        '<td><span class="mono ' + scoreCls + '">' + c.finalScore + '</span></td>' +
+        '<td><button class="btn btn-sm btn-secondary" type="button" onclick="ARGP_MOCK.openPubProjectDetail(\'' + c.id + '\')">查看详情</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function renderPubNavBadge() {
+    var nav = document.querySelector('.nav-item[data-nav="proj-pub"]');
+    if (!nav) return;
+    var existing = nav.querySelector('.nav-badge-pub');
+    if (!PUB_PERIOD.active) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (!existing) {
+      existing = document.createElement('span');
+      existing.className = 'nav-badge nav-badge-pub';
+      existing.textContent = '公示中';
+      nav.appendChild(existing);
+    }
+  }
 
   function scoreClass(score) {
     if (score == null) return 'text-muted';
@@ -167,6 +270,22 @@
       el.style.background = 'var(--warn-bg)';
       el.style.borderLeft = '3px solid #b45309';
       el.style.color = '#78350f';
+    } else if (p.status === 'pub' && p._readOnly && !p.isOwn && PUB_PERIOD.active) {
+      show = true;
+      html =
+        '<strong style="color:#1e40af;">公示项目浏览</strong> · 当前为批次立项结果公开信息（' + (p.applicant || '—') + ' · ' + (p.pubGrade || '—') + '）。' +
+        '<div style="margin-top:8px;font-size:12px;">公示期内如对立项等级或评审过程有异议，请点击上方「提出异议」或切换至「公示异议」Tab 填写。</div>';
+      el.style.background = '#eff6ff';
+      el.style.borderLeft = '3px solid #2563eb';
+      el.style.color = '#1e40af';
+    } else if (p.status === 'pub' && p.isOwn) {
+      show = true;
+      html =
+        '<strong style="color:#059669;">已准予立项</strong> · 本项目已进入公示期，立项等级 ' + (p.pubGrade || '—') + '。' +
+        '<div style="margin-top:8px;font-size:12px;">如对<strong>他人项目</strong>有异议，请从「立项项目公示」进入对应项目详情提交。</div>';
+      el.style.background = '#f6ffed';
+      el.style.borderLeft = '3px solid #059669';
+      el.style.color = '#166534';
     } else if (p.status === 'failed') {
       show = true;
       var notice = p.resultNotice || '经评审委员会审议，本项目未准予立项。';
@@ -188,7 +307,7 @@
         html =
           '<strong style="color:#b91c1c;">评审未通过</strong> · ' + notice +
           '<div style="margin-top:8px;font-size:12px;">如对<strong>程序性问题</strong>有异议，可在 ' +
-          (p.appealDeadline || '结果通知后 7 个工作日内') + ' 通过右侧「申诉」入口提交。</div>';
+          (p.appealDeadline || '结果通知后 7 个工作日内') + ' 通过「争议与申诉」Tab 提交。</div>';
         el.style.background = 'var(--danger-bg)';
         el.style.borderLeft = '3px solid #b91c1c';
         el.style.color = '#7f1d1d';
@@ -210,38 +329,12 @@
     if (show) el.innerHTML = html;
   }
 
-  function renderProjDetailAppealSlot(p) {
-    var slot = document.getElementById('proj-detail-appeal-slot');
-    if (!slot) return;
-    if (!p || p.status !== 'failed') {
-      slot.classList.add('role-hidden');
-      return;
-    }
-    var inner = '';
-    if (p.appealStatus === 'pending' || p.appealStatus === 'reviewing') {
-      inner =
-        '<span style="color:#b45309;">●</span> 申诉受理中 · 秘书处正在审核是否符合复议条件';
-    } else if (p.appealStatus === 'closed') {
-      inner = '申诉已结案 · 复议结果为终局结论';
-    } else if (window.ARGP_APPEAL && window.ARGP_APPEAL.canSubmitAppeal(p)) {
-      inner =
-        '对评审结果有程序性异议？' +
-        '<a class="section-action" style="margin-left:4px;" href="#" onclick="ARGP_APPEAL.openAppealPage(\'' + p.id + '\');return false;">提交申诉</a>' +
-        '<span style="display:block;margin-top:4px;font-size:11px;color:var(--text-3);">截止 ' +
-        (p.appealDeadline || '结果通知后 7 个工作日') + '</span>';
-    } else {
-      slot.classList.add('role-hidden');
-      return;
-    }
-    slot.classList.remove('role-hidden');
-    slot.innerHTML = inner;
-  }
-
   function canShowAiReport(p) {
     return isPreGuidance(p) && p.hasAiReport;
   }
 
   var _currentDetailId = 'PROJ-2026-0087';
+  var _detailSource = 'mine';
   var _studentCompareVersionId = null;
   var _studentCompareReturnTo = 'list';
 
@@ -252,7 +345,75 @@
     return null;
   }
 
+  function getPubCatalogEntry(id) {
+    for (var i = 0; i < PUB_CATALOG.length; i++) {
+      if (PUB_CATALOG[i].id === id) return PUB_CATALOG[i];
+    }
+    return null;
+  }
+
+  function isPubPeriodActive() {
+    return !!PUB_PERIOD.active;
+  }
+
+  function getDetailSource() {
+    return _detailSource;
+  }
+
+  function mergePubInfo(p) {
+    var cat = getPubCatalogEntry(p.id);
+    if (!cat) return p;
+    var merged = {};
+    var key;
+    for (key in p) { if (Object.prototype.hasOwnProperty.call(p, key)) merged[key] = p[key]; }
+    merged.pubGrade = cat.pubGrade || p.pubGrade;
+    merged.finalScore = cat.finalScore != null ? cat.finalScore : p.finalScore;
+    merged.college = cat.college || p.college;
+    merged.applicant = cat.applicant || p.applicant;
+    merged.isOwn = cat.isOwn != null ? cat.isOwn : true;
+    merged.objectionStatus = cat.objectionStatus;
+    merged._fromPubCatalog = true;
+    return merged;
+  }
+
+  function buildPubViewProject(cat) {
+    return {
+      id: cat.id,
+      title: cat.title,
+      applicant: cat.applicant,
+      college: cat.college,
+      pubGrade: cat.pubGrade,
+      finalScore: cat.finalScore,
+      status: 'pub',
+      stage: '公示',
+      isOwn: !!cat.isOwn,
+      objectionStatus: cat.objectionStatus,
+      hasAiReport: false,
+      _readOnly: true,
+      _fromPubCatalog: true
+    };
+  }
+
+  function getProjectForDetail(id) {
+    var pid = id || _currentDetailId;
+    if (_detailSource === 'pub') {
+      var pubCat = getPubCatalogEntry(pid);
+      if (pubCat) return buildPubViewProject(pubCat);
+    }
+    var student = getProjectById(pid);
+    if (student) {
+      if (student.status === 'pub') {
+        return mergePubInfo(student);
+      }
+      return student;
+    }
+    var cat = getPubCatalogEntry(pid);
+    if (cat) return buildPubViewProject(cat);
+    return null;
+  }
+
   function openProjectDetail(projId) {
+    _detailSource = 'mine';
     if (projId) _currentDetailId = projId;
     if (window.ARGP_AI && window.ARGP_AI.setCurrentProjId) {
       window.ARGP_AI.setCurrentProjId(_currentDetailId);
@@ -262,8 +423,123 @@
     }
   }
 
+  function openPubProjectDetail(projId, options) {
+    options = options || {};
+    _detailSource = 'pub';
+    _currentDetailId = projId;
+    if (options.focusDispute) {
+      window._focusDisputeTabOnLoad = true;
+    }
+    if (typeof window.showPage === 'function') {
+      window.showPage('proj-detail');
+    }
+  }
+
+  function isPubDetailView(p) {
+    return !!(p && p.status === 'pub');
+  }
+
+  function renderPubMaterialPanel(p) {
+    var panel = document.getElementById('dt-material');
+    if (!panel) return;
+    panel.innerHTML =
+      '<div class="doc-viewer" style="border-top:none; border-radius:0 0 var(--radius-lg) var(--radius-lg);">' +
+        '<div class="doc-viewer-toolbar">' +
+          '<div class="doc-viewer-title">最终申请材料 · ' + p.title + '</div>' +
+          '<span style="font-size:10.5px; color:var(--text-3); font-family:\'DM Mono\',monospace;">终稿 · 公示公开版</span>' +
+        '</div>' +
+        '<div class="doc-body pub-final-doc">' +
+          '<p style="font-size:12.5px;color:var(--text-secondary);margin:0 0 16px;padding:10px 12px;background:#f8fafc;border-radius:var(--radius);">' +
+            '以下为该项目准予立项时的最终申请材料（公示公开版），不含过程性批注与中间版本。</p>' +
+          '<h3>一、研究背景与意义</h3>' +
+          '<p>本项目围绕「' + p.title + '」开展研究，结合当前学科前沿与工程应用需求，阐述研究的理论价值与实践意义。</p>' +
+          '<h3>二、研究目标与内容</h3>' +
+          '<p>研究目标为构建完整的技术方案并验证其有效性；研究内容包括问题建模、方法设计、实验验证与成果总结。</p>' +
+          '<h3>三、创新点与预期成果</h3>' +
+          '<p>提出具有应用价值的创新方法；预期形成论文、软件或专利等可考核成果。</p>' +
+          '<h3>四、研究计划</h3>' +
+          '<p>按立项批次要求分阶段推进，已完成答辩评审并进入公示环节。</p>' +
+        '</div></div>';
+  }
+
+  function applyPubDetailLayout(p, ctx) {
+    var isPub = isPubDetailView(p);
+    var tabMap = {
+      overview: document.getElementById('proj-detail-tab-overview'),
+      material: document.getElementById('proj-detail-tab-material'),
+      attach: document.getElementById('proj-detail-tab-attach'),
+      result: document.getElementById('proj-detail-tab-result'),
+      version: document.getElementById('proj-detail-tab-version')
+    };
+    var panels = {
+      overview: document.getElementById('dt-overview'),
+      attach: document.getElementById('dt-attach'),
+      result: document.getElementById('dt-result'),
+      version: document.getElementById('dt-version')
+    };
+    var progressCard = document.getElementById('proj-detail-progress-card');
+    var infoCard = document.getElementById('proj-detail-info-card');
+    var guidanceNote = document.getElementById('proj-detail-guidance-note');
+    var aiBanner = document.getElementById('proj-detail-ai-banner');
+    var objectionBanner = document.getElementById('proj-detail-pub-objection-banner');
+
+    if (infoCard && !window._projDetailInfoCardDefault) {
+      window._projDetailInfoCardDefault = infoCard.innerHTML;
+    }
+
+    if (!isPub) {
+      if (tabMap.overview) tabMap.overview.classList.remove('role-hidden');
+      if (tabMap.material) tabMap.material.textContent = '申请材料';
+      if (tabMap.attach) tabMap.attach.classList.remove('role-hidden');
+      if (tabMap.result) tabMap.result.classList.remove('role-hidden');
+      if (tabMap.version) tabMap.version.classList.remove('role-hidden');
+      if (progressCard) progressCard.classList.remove('role-hidden');
+      if (infoCard && window._projDetailInfoCardDefault) infoCard.innerHTML = window._projDetailInfoCardDefault;
+      if (panels.overview) panels.overview.style.display = '';
+      if (guidanceNote) guidanceNote.style.display = '';
+      if (objectionBanner) objectionBanner.classList.add('role-hidden');
+      return;
+    }
+
+    if (tabMap.overview) tabMap.overview.classList.add('role-hidden');
+    if (tabMap.attach) tabMap.attach.classList.add('role-hidden');
+    if (tabMap.result) tabMap.result.classList.add('role-hidden');
+    if (tabMap.version) tabMap.version.classList.add('role-hidden');
+    if (tabMap.material) tabMap.material.textContent = '最终申请材料';
+    if (progressCard) progressCard.classList.add('role-hidden');
+    if (infoCard) {
+      infoCard.classList.remove('role-hidden');
+      infoCard.innerHTML =
+        '<div class="meta-title">项目信息</div>' +
+        '<div class="meta-row"><span class="meta-k">申请人</span><span class="meta-v">' + (p.applicant || '—') + '</span></div>' +
+        '<div class="meta-row"><span class="meta-k">学院</span><span class="meta-v">' + (p.college || '—') + '</span></div>' +
+        '<div class="meta-row"><span class="meta-k">项目编号</span><span class="meta-v mono text-xs">' + p.id + '</span></div>' +
+        '<div class="meta-row"><span class="meta-k">公示状态</span><span class="meta-v">公示中</span></div>';
+    }
+    if (panels.overview) panels.overview.style.display = 'none';
+    if (panels.attach) panels.attach.style.display = 'none';
+    if (panels.result) panels.result.style.display = 'none';
+    if (panels.version) panels.version.style.display = 'none';
+    if (guidanceNote) guidanceNote.style.display = 'none';
+    if (aiBanner) aiBanner.classList.add('role-hidden');
+    if (objectionBanner) objectionBanner.classList.add('role-hidden');
+    renderPubMaterialPanel(p);
+  }
+
+  function activateDetailDefaultTab(p, ctx) {
+    if (window._focusDisputeTabOnLoad) return;
+    var isPub = isPubDetailView(p);
+    if (!isPub) {
+      var overviewTab = document.getElementById('proj-detail-tab-overview');
+      if (overviewTab && typeof window.setTab === 'function') window.setTab(overviewTab, 'dt-overview');
+      return;
+    }
+    var materialTab = document.getElementById('proj-detail-tab-material');
+    if (materialTab && typeof window.setTab === 'function') window.setTab(materialTab, 'dt-material');
+  }
+
   function applyProjDetailView() {
-    var p = getProjectById(_currentDetailId) || STUDENT_PROJECTS[0];
+    var p = getProjectForDetail(_currentDetailId) || getProjectForDetail(STUDENT_PROJECTS[0].id);
     if (!p) return;
     _currentDetailId = p.id;
     var st = STATUS[p.status] || STATUS.draft;
@@ -277,6 +553,7 @@
     var guidanceNote = document.getElementById('proj-detail-guidance-note');
     var btnEdit = document.getElementById('proj-detail-btn-edit');
     var btnAi = document.getElementById('proj-detail-btn-ai');
+    var btnDefense = document.getElementById('proj-detail-btn-defense');
     var aiScore = document.getElementById('proj-detail-ai-score');
 
     if (title) title.textContent = p.title;
@@ -298,12 +575,52 @@
       }
     }
     if (guidanceNote) renderProjDetailNotice(p, guidanceNote);
-    if (btnEdit) btnEdit.classList.toggle('role-hidden', !canStudentEdit(p));
-    if (btnAi) btnAi.classList.toggle('role-hidden', !showAi);
-    renderProjDetailAppealSlot(p);
+    if (btnEdit) btnEdit.classList.toggle('role-hidden', !canStudentEdit(p) || !!p._readOnly);
+    if (btnAi) btnAi.classList.toggle('role-hidden', !showAi || !!p._readOnly || isPubDetailView(p));
+    if (btnDefense && window.ARGP_AI) {
+      var studentP = getProjectById(p.id);
+      var canDef = studentP && window.ARGP_AI.canUseDefenseAssist &&
+        window.ARGP_AI.canUseDefenseAssist(studentP);
+      var defMode = canDef && window.ARGP_AI.getDefenseMode
+        ? window.ARGP_AI.getDefenseMode(studentP)
+        : null;
+      var showDefBtn = canDef && !p._readOnly && !isPubDetailView(p);
+      btnDefense.classList.toggle('role-hidden', !showDefBtn);
+      if (showDefBtn) {
+        btnDefense.textContent = defMode === 'scheduled' ? '答辩助手' : '答辩预演';
+      }
+    }
+
+    var ctx = null;
+    if (window.ARGP_APPEAL && window.ARGP_APPEAL.renderProjDetailDisputeUI) {
+      ctx = window.ARGP_APPEAL.renderProjDetailDisputeUI(p, { source: _detailSource });
+    }
+
+    applyPubDetailLayout(p, ctx);
+
+    var readOnly = !!p._readOnly || isPubDetailView(p);
+    ['dt-material', 'dt-attach', 'dt-result', 'dt-version'].forEach(function (tid) {
+      var panel = document.getElementById(tid);
+      if (!panel) return;
+      if (isPubDetailView(p)) {
+        panel.style.display = tid === 'dt-material' ? 'none' : 'none';
+      } else {
+        panel.style.display = readOnly ? 'none' : (tid === 'dt-overview' ? '' : 'none');
+      }
+    });
+    if (!isPubDetailView(p)) {
+      document.querySelectorAll('#page-proj-detail .tabs .tab-item').forEach(function (tab) {
+        if (tab.id === 'proj-detail-dispute-tab') return;
+        var onclick = tab.getAttribute('onclick') || '';
+        var isExtra = onclick.indexOf('dt-material') > -1 || onclick.indexOf('dt-attach') > -1 ||
+          onclick.indexOf('dt-result') > -1 || onclick.indexOf('dt-version') > -1;
+        if (isExtra) tab.classList.toggle('role-hidden', readOnly);
+      });
+    }
 
     if (window.ARGP_MOCK.closeVersionDetail) closeVersionDetail();
-    renderVersionList();
+    if (!isPubDetailView(p)) renderVersionList();
+    activateDetailDefaultTab(p, ctx);
   }
 
   function getStudentStatusDisplay(p) {
@@ -616,6 +933,8 @@
     renderMyProjList();
     updateMyProjMeta();
     renderStudentHomeBoard();
+    renderPubProjectList();
+    renderPubNavBadge();
   }
 
   function getCurrentDetailId() {
@@ -918,6 +1237,8 @@
 
   window.ARGP_MOCK = {
     STUDENT_PROJECTS: STUDENT_PROJECTS,
+    PUB_CATALOG: PUB_CATALOG,
+    PUB_PERIOD: PUB_PERIOD,
     STATUS: STATUS,
     PRE_GUIDANCE: PRE_GUIDANCE,
     isPreGuidance: isPreGuidance,
@@ -932,6 +1253,11 @@
     closeVersionCompare: closeVersionCompare,
     openSamplePaper: openSamplePaper,
     openProjectDetail: openProjectDetail,
+    openPubProjectDetail: openPubProjectDetail,
+    getProjectForDetail: getProjectForDetail,
+    getPubCatalogEntry: getPubCatalogEntry,
+    getDetailSource: getDetailSource,
+    isPubPeriodActive: isPubPeriodActive,
     applyProjDetailView: applyProjDetailView,
     getStudentListTab: getStudentListTab,
     syncAfterSubmitToMentor: syncAfterSubmitToMentor,
@@ -940,6 +1266,8 @@
     syncAfterSecretaryIntake: syncAfterSecretaryIntake,
     syncAfterSecretaryReject: syncAfterSecretaryReject,
     initStudentProjects: initStudentProjects,
+    renderPubProjectList: renderPubProjectList,
+    renderPubNavBadge: renderPubNavBadge,
     renderMyProjList: renderMyProjList,
     renderMyProjTabs: renderMyProjTabs,
     renderStudentProjectSummary: renderStudentProjectSummary,

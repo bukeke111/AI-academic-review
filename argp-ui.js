@@ -70,9 +70,11 @@
     var items = getFeedItems();
     list.innerHTML = items.map(function (it) {
       var projAttr = it.projId ? ' data-proj-id="' + it.projId + '"' : '';
+      var pubProjAttr = it.pubProjId ? ' data-pub-proj-id="' + it.pubProjId + '"' : '';
+      var focusDisputeAttr = it.focusDispute ? ' data-focus-dispute="1"' : '';
       var actionAttr = it.actionFn ? ' data-action-fn="1"' : '';
       var msgIdAttr = it.id ? ' data-msg-id="' + it.id + '"' : '';
-      return '<a class="gh-feed-item' + (it.unread ? ' unread' : '') + '" href="#" data-msg-cat="' + it.category + '"' + projAttr + actionAttr + msgIdAttr + '">' +
+      return '<a class="gh-feed-item' + (it.unread ? ' unread' : '') + '" href="#" data-msg-cat="' + it.category + '"' + projAttr + pubProjAttr + focusDisputeAttr + actionAttr + msgIdAttr + '">' +
         '<div class="gh-feed-item-hd"><span class="gh-feed-tag ' + tagClass(it.category) + '">' + it.tag + '</span>' +
         '<span class="gh-feed-time">' + it.time + '</span></div>' +
         '<div class="gh-feed-item-title">' + it.title + '</div>' +
@@ -95,9 +97,23 @@
       e.preventDefault();
       e.stopPropagation();
       var projId = item.getAttribute('data-proj-id');
+      var pubProjId = item.getAttribute('data-pub-proj-id');
       var msgId = item.getAttribute('data-msg-id');
+      if (pubProjId && window.ARGP_MOCK && window.ARGP_MOCK.openPubProjectDetail) {
+        var pubOpts = item.getAttribute('data-focus-dispute') === '1' ? { focusDispute: true } : {};
+        window.ARGP_MOCK.openPubProjectDetail(pubProjId, pubOpts);
+        closeAllPanels();
+        return;
+      }
       if (projId && window.ARGP_MOCK && window.ARGP_MOCK.openProjectDetail) {
         window.ARGP_MOCK.openProjectDetail(projId);
+        if (item.getAttribute('data-focus-dispute') === '1') {
+          setTimeout(function () {
+            if (window.ARGP_APPEAL && window.ARGP_APPEAL.focusDisputeTab) {
+              window.ARGP_APPEAL.focusDisputeTab();
+            }
+          }, 80);
+        }
         closeAllPanels();
         return;
       }
@@ -217,8 +233,13 @@
     if (it.actionFn) {
       return '<div class="msg-card-actions"><button type="button" class="btn btn-sm btn-primary" onclick="' + it.actionFn + ';ARGP_UI.closeMsgDrawer();">' + (it.actionLabel || '查看') + '</button></div>';
     }
+    if (it.pubProjId && window.ARGP_MOCK && window.ARGP_MOCK.openPubProjectDetail) {
+      var pubFocus = it.focusDispute ? ', { focusDispute: true }' : '';
+      return '<div class="msg-card-actions"><button type="button" class="btn btn-sm btn-primary" onclick="ARGP_MOCK.openPubProjectDetail(\'' + it.pubProjId + '\'' + pubFocus + ');ARGP_UI.closeMsgDrawer();">' + (it.actionLabel || '查看详情') + '</button></div>';
+    }
     if (it.projId && window.ARGP_MOCK && window.ARGP_MOCK.openProjectDetail) {
-      return '<div class="msg-card-actions"><button type="button" class="btn btn-sm btn-primary" onclick="ARGP_MOCK.openProjectDetail(\'' + it.projId + '\');ARGP_UI.closeMsgDrawer();">' + (it.actionLabel || '查看项目') + '</button></div>';
+      var focusFn = it.focusDispute ? ';setTimeout(function(){if(window.ARGP_APPEAL)ARGP_APPEAL.focusDisputeTab()},80)' : '';
+      return '<div class="msg-card-actions"><button type="button" class="btn btn-sm btn-primary" onclick="ARGP_MOCK.openProjectDetail(\'' + it.projId + '\')' + focusFn + ';ARGP_UI.closeMsgDrawer();">' + (it.actionLabel || '查看项目') + '</button></div>';
     }
     if (it.actionLabel && it.href && it.href !== '#') {
       return '<div class="msg-card-actions"><a class="btn btn-sm btn-secondary" href="' + it.href + '">' + it.actionLabel + '</a></div>';

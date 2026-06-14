@@ -2123,6 +2123,9 @@ function submitObjection() {
       reason: text,
       objector: '公示期申请人'
     });
+    if (window.ARGP_APPEAL.syncCatalogObjectionStatus) {
+      window.ARGP_APPEAL.syncCatalogObjectionStatus(parts[0], 'pending');
+    }
   }
   showToast('异议已提交，秘书处将在 5 个工作日内核实', 'success');
   setTimeout(function() { openMsgCenterDrawer('obj'); }, 1200);

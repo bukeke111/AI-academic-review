@@ -182,6 +182,16 @@
       crumbs = [{ label: pageId || '当前页面' }];
     }
 
+    if (pageId === 'proj-detail' && window.ARGP_MOCK && window.ARGP_MOCK.getDetailSource &&
+        window.ARGP_MOCK.getDetailSource() === 'pub') {
+      crumbs = [
+        { label: '工作台', page: 'home' },
+        { label: '项目中心' },
+        { label: '立项项目公示', page: 'proj-pub' },
+        { label: '公示项目详情' }
+      ];
+    }
+
     var html = '<ol class="bc-list">';
     crumbs.forEach(function (c, i) {
       var isLast = i === crumbs.length - 1;
